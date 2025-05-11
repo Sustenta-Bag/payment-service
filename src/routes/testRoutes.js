@@ -16,6 +16,7 @@ const testController = require('../controllers/testController');
  *             type: object
  *             required:
  *               - orderId
+ *               - fcmToken
  *             properties:
  *               orderId:
  *                 type: string
@@ -25,6 +26,9 @@ const testController = require('../controllers/testController');
  *                 description: Status do pagamento
  *                 enum: ['pending', 'approved', 'rejected', 'refunded']
  *                 default: 'approved'
+ *               fcmToken:
+ *                 type: string
+ *                 description: Token FCM do dispositivo para enviar notificação push
  *     responses:
  *       200:
  *         description: Status do pagamento atualizado com sucesso

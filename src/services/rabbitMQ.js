@@ -16,11 +16,17 @@ class RabbitMQService {
     try {
       this.connection = await amqp.connect(config.rabbitmq.url);
       this.channel = await this.connection.createChannel();
-      
-      // Configura exchanges
+        // Configura exchanges
       await this.channel.assertExchange(
         config.rabbitmq.exchanges.payments, 
         'topic', 
+        { durable: true }
+      );
+      
+      // Configura exchange para notificações
+      await this.channel.assertExchange(
+        config.rabbitmq.exchanges.notifications,
+        'direct',
         { durable: true }
       );
       

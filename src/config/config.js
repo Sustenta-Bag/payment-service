@@ -6,15 +6,15 @@ module.exports = {
   port: process.env.PORT || 3001,
   mongodb: {
     uri: process.env.MONGODB_URI
-  },
-  rabbitmq: {
+  },  rabbitmq: {
     url: process.env.RABBITMQ_URL,
     queues: {
       paymentRequests: 'payment_requests',
       paymentResults: 'payment_results'
     },
     exchanges: {
-      payments: 'payments_exchange'
+      payments: 'payments_exchange',
+      notifications: 'process_notification_exchange'
     }
   },
   mercadopago: {
