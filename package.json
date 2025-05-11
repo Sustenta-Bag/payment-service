@@ -1,0 +1,41 @@
+{
+  "name": "payment-service",
+  "version": "1.0.0",
+  "description": "Microserviço de pagamentos usando Node.js, Express, RabbitMQ e Mercado Pago",
+  "main": "src/server.js",
+  "scripts": {
+    "start": "node src/server.js",
+    "dev": "nodemon src/server.js",
+    "test": "jest --detectOpenHandles"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Sustenta-Bag/payment-service.git"
+  },
+  "dependencies": {
+    "amqplib": "^0.10.3",
+    "cors": "^2.8.5",
+    "dotenv": "^16.0.3",
+    "express": "^4.18.2",
+    "helmet": "^6.0.1",
+    "mercadopago": "^1.5.14",
+    "mongoose": "^7.0.3",
+    "morgan": "^1.10.0",
+    "swagger-jsdoc": "^6.2.8",
+    "swagger-ui-express": "^5.0.1",
+    "uuid": "^9.0.0",
+    "winston": "^3.8.2"
+  },
+  "devDependencies": {
+    "jest": "^29.5.0",
+    "nodemon": "^2.0.22",
+    "supertest": "^6.3.3"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/Sustenta-Bag/payment-service/issues"
+  },
+  "homepage": "https://github.com/Sustenta-Bag/payment-service#readme"
+}
