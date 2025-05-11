@@ -21,6 +21,12 @@ app.use(morgan('combined'));
 // Rotas
 app.use('/api/payments', paymentRoutes);
 
+// Rotas de teste (disponíveis em ambiente de desenvolvimento e teste)
+if (config.env === 'development' || config.env === 'test') {
+  app.use('/api/test', testRoutes);
+  logger.info('Rotas de teste habilitadas');
+}
+
 // Configuração do Swagger
 setupSwagger(app);
 logger.info('Documentação Swagger disponível em /api-docs');
