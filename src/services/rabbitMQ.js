@@ -16,21 +16,18 @@ class RabbitMQService {
     try {
       this.connection = await amqp.connect(config.rabbitmq.url);
       this.channel = await this.connection.createChannel();
-        // Configura exchanges
       await this.channel.assertExchange(
         config.rabbitmq.exchanges.payments, 
         'topic', 
         { durable: true }
       );
       
-      // Configura exchange para notificações
       await this.channel.assertExchange(
         config.rabbitmq.exchanges.notifications,
         'direct',
         { durable: true }
       );
       
-      // Configura filas
       await this.channel.assertQueue(
         config.rabbitmq.queues.paymentRequests, 
         { durable: true }
@@ -40,7 +37,6 @@ class RabbitMQService {
         { durable: true }
       );
       
-      // Bind das filas aos exchanges
       await this.channel.bindQueue(
         config.rabbitmq.queues.paymentRequests,
         config.rabbitmq.exchanges.payments,

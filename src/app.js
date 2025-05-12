@@ -9,40 +9,32 @@ const testRoutes = require('./routes/testRoutes');
 const setupSwagger = require('./config/swagger');
 const logger = require('./utils/logger');
 
-// Inicializa Express
 const app = express();
 
-// Middlewares
 app.use(helmet());
 app.use(cors());
 app.use(express.json());
 app.use(morgan('combined'));
 
-// Rotas
 app.use('/api/payments', paymentRoutes);
 
-// Rotas de teste (disponíveis em ambiente de desenvolvimento e teste)
 if (config.env === 'development' || config.env === 'test') {
   app.use('/api/test', testRoutes);
   logger.info('Rotas de teste habilitadas');
 }
 
-// Configuração do Swagger
 setupSwagger(app);
 logger.info('Documentação Swagger disponível em /api-docs');
 
-// Rotas de teste (apenas em desenvolvimento)
 if (config.env === 'development') {
   app.use('/api/test', testRoutes);
   logger.info('Rotas de teste habilitadas');
 }
 
-// Rota de health check
 app.get('/health', (req, res) => {
   res.status(200).json({ status: 'OK', timestamp: new Date() });
 });
 
-// Rota da página inicial
 app.get('/', (req, res) => {
   const html = `
   <!DOCTYPE html>
@@ -193,7 +185,6 @@ fetch('/api/payments', {
   res.send(html);
 });
 
-// Middleware de tratamento de erros
 app.use((err, req, res, next) => {
   logger.error(`Erro não tratado: ${err.message}`);
   
@@ -204,7 +195,6 @@ app.use((err, req, res, next) => {
   });
 });
 
-// Conexão com MongoDB
 mongoose.connect(config.mongodb.uri)
   .then(() => {
     logger.info('Conectado ao MongoDB');

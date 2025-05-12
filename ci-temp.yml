@@ -1,0 +1,39 @@
+name: Payment Service CI
+
+on:
+  push:
+    branches: [ main, develop ]
+  pull_request:
+    branches: [ main, develop ]
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    
+    strategy:
+      matrix:
+        node-version: [18.x]
+
+    steps:
+    - uses: actions/checkout@v3
+    
+    - name: Use Node.js ${{ matrix.node-version }}
+      uses: actions/setup-node@v3
+      with:
+        node-version: ${{ matrix.node-version }}
+        cache: 'npm'
+    
+    - name: Install dependencies
+      run: npm ci
+    
+    - name: Run tests
+      run: npm test
+      env:
+        CI: true
+        MONGODB_URI: mongodb://localhost:27017/payment-service
+        RABBITMQ_URL: amqp://localhost
+        MERCADOPAGO_ACCESS_TOKEN: TEST-0000000000000000-000000-00000000000000000000000000000000-000000000
+        MERCADOPAGO_WEBHOOK_URL: http://localhost:3001/api/payments/webhook
+
+    - name: Generate code coverage
+      run: npm run test:coverage

@@ -1,14 +1,11 @@
-// Arquivo de configuração para testes com Jest
 const { MongoMemoryServer } = require('mongodb-memory-server');
 const mongoose = require('mongoose');
 const config = require('../src/config/config');
 
-// Configurar ambiente para testes
 config.env = 'test';
 
 let mongoServer;
 
-// Configuração dos mocks
 jest.mock('../src/services/rabbitMQ', () => ({
   connect: jest.fn().mockResolvedValue(true),
   publish: jest.fn().mockResolvedValue(true),
@@ -41,16 +38,12 @@ jest.mock('../src/services/mercadoPago', () => ({
   })
 }));
 
-// Código para configurar o banco de dados em memória antes de todos os testes
 beforeAll(async () => {
-  // Configurar banco de dados MongoDB em memória
   mongoServer = await MongoMemoryServer.create();
   const mongoUri = mongoServer.getUri();
   
-  // Substituir a URI do MongoDB no objeto de configuração
   config.mongodb.uri = mongoUri;
 
-  // Desconectar qualquer conexão existente antes de criar uma nova
   if (mongoose.connection.readyState !== 0) {
     await mongoose.disconnect();
   }
@@ -58,7 +51,6 @@ beforeAll(async () => {
   await mongoose.connect(mongoUri);
 });
 
-// Limpar coleções após cada teste
 afterEach(async () => {
   const collections = mongoose.connection.collections;
   for (const key in collections) {
@@ -67,13 +59,11 @@ afterEach(async () => {
   }
 });
 
-// Fechar conexão e servidor após finalizar todos os testes
 afterAll(async () => {
   await mongoose.disconnect();
   await mongoServer.stop();
 });
 
-// Desabilitar logs durante os testes
 jest.mock('../src/utils/logger', () => ({
   info: jest.fn(),
   error: jest.fn(),

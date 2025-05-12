@@ -22,15 +22,12 @@ exports.createPayment = async (req, res) => {
       });
     }
 
-    // Calcula o valor total do pedido
     const amount = items.reduce((total, item) => {
       return total + (item.unitPrice * item.quantity);
     }, 0);
 
-    // Gera um ID único para o pedido
     const orderId = uuidv4();
     
-    // Cria um novo pagamento no banco de dados
     const payment = new Payment({
       orderId,
       userId,
@@ -44,7 +41,6 @@ exports.createPayment = async (req, res) => {
     });
     await payment.save();
     
-    // Cria preferência de pagamento no Mercado Pago
     const paymentData = {
       orderId,
       userId,
@@ -56,13 +52,11 @@ exports.createPayment = async (req, res) => {
     
     const preference = await mercadoPagoService.createPreference(paymentData);
     
-    // Atualiza o pagamento com a URL do Mercado Pago
     payment.paymentUrl = preference.init_point;
     payment.mercadopagoId = preference.id;
     payment.updatedAt = new Date();
     await payment.save();
     
-    // Publica mensagem de pagamento criado
     await rabbitMQService.publish(
       config.rabbitmq.exchanges.payments,
       'payment.request',
@@ -137,17 +131,14 @@ exports.webhook = async (req, res) => {
   try {
     const notification = req.body;
     
-    // Responde imediatamente ao Mercado Pago para não causar timeout
     res.status(200).send('OK');
     
-    // Processa a notificação de forma assíncrona
     const paymentInfo = await mercadoPagoService.processWebhook(notification);
     if (!paymentInfo) {
       logger.info('Notificação ignorada: não é um evento de pagamento');
       return;
     }
     
-    // Busca o pagamento pelo ID externo (orderId)
     const payment = await Payment.findOne({ 
       orderId: paymentInfo.metadata.externalReference || paymentInfo.metadata.orderId 
     });
@@ -157,14 +148,12 @@ exports.webhook = async (req, res) => {
       return;
     }
     
-    // Atualiza o status do pagamento
     payment.status = paymentInfo.status;
     payment.mercadopagoId = paymentInfo.mercadopagoId;
     payment.paymentMethod = paymentInfo.paymentMethod;
     payment.updatedAt = new Date();
     await payment.save();
     
-    // Publica mensagem com resultado do pagamento
     await rabbitMQService.publish(
       config.rabbitmq.exchanges.payments,
       'payment.result',

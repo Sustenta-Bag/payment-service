@@ -5,7 +5,6 @@ const logger = require('./utils/logger');
 
 async function startServer() {
   try {
-    // Conecta ao RabbitMQ (tenta conectar, mas não falha se não conseguir)
     try {
       await rabbitMQService.connect();
       logger.info('Conectado ao RabbitMQ');
@@ -14,12 +13,10 @@ async function startServer() {
       logger.warn('O serviço iniciará sem conexão com o RabbitMQ. Alguns recursos podem não funcionar.');
     }
     
-    // Inicia servidor HTTP
     const server = app.listen(config.port, () => {
       logger.info(`Servidor rodando na porta ${config.port}`);
     });
 
-    // Tratamento de sinais para encerramento limpa do servidor
     const shutdown = async () => {
       logger.info('Desligando servidor...');
       

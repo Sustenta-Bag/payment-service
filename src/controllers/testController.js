@@ -69,7 +69,6 @@ exports.simulatePayment = async (req, res) => {
       });
     }
     
-    // Busca o pagamento pelo orderId
     const payment = await Payment.findOne({ orderId });
     
     if (!payment) {
@@ -79,12 +78,10 @@ exports.simulatePayment = async (req, res) => {
       });
     }
     
-    // Atualiza o status do pagamento
     payment.status = status;
     payment.updatedAt = new Date();
     await payment.save();
     
-    // Publica mensagem com resultado do pagamento
     await rabbitMQService.publish(
       config.rabbitmq.exchanges.payments,
       'payment.result',
@@ -97,15 +94,14 @@ exports.simulatePayment = async (req, res) => {
         amount: payment.amount
       }
     );
-      // Envia notificação para o serviço de notificação
     try {
       const notificationMessage = getNotificationMessage(payment, status);
       
       await rabbitMQService.publish(
-        config.rabbitmq.exchanges.notifications, // Exchange do serviço de notificação
-        'notification', // Routing key do serviço de notificação
+        config.rabbitmq.exchanges.notifications, 
+        'notification',
         {
-          to: fcmToken, // Token FCM do dispositivo
+          to: fcmToken,
           notification: {
             title: notificationMessage.title,
             body: notificationMessage.body
@@ -125,7 +121,6 @@ exports.simulatePayment = async (req, res) => {
       logger.info(`Notificação enviada para o token FCM: ${fcmToken.substring(0, 10)}...`);
     } catch (notificationError) {
       logger.error(`Erro ao enviar notificação: ${notificationError.message}`);
-      // Não falha o processo principal se a notificação falhar
     }
     
     logger.info(`Simulação: Pagamento ${payment.orderId} atualizado para ${payment.status}`);
