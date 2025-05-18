@@ -35,6 +35,31 @@ const options = {
             method: {
               type: 'string',
               description: 'Método HTTP do link'
+            },
+            title: {
+              type: 'string',
+              description: 'Título descritivo do link'
+            }
+          }
+        },
+        Pagination: {
+          type: 'object',
+          properties: {
+            totalItems: {
+              type: 'integer',
+              description: 'Número total de itens na coleção'
+            },
+            itemsPerPage: {
+              type: 'integer',
+              description: 'Número de itens por página'
+            },
+            currentPage: {
+              type: 'integer',
+              description: 'Página atual'
+            },
+            totalPages: {
+              type: 'integer',
+              description: 'Número total de páginas'
             }
           }
         },
@@ -221,8 +246,93 @@ const options = {
               example: 'Detalhes do erro',
             },
           },
+        },      },
+    },
+    components: {
+      parameters: {
+        pageParam: {
+          in: 'query',
+          name: 'page',
+          schema: {
+            type: 'integer',
+            default: 1
+          },
+          description: 'Página atual para resultados paginados'
         },
+        limitParam: {
+          in: 'query',
+          name: 'limit',
+          schema: {
+            type: 'integer',
+            default: 10
+          },
+          description: 'Número de itens por página'
+        },
+        versionParam: {
+          in: 'query',
+          name: 'version',
+          schema: {
+            type: 'string'
+          },
+          description: 'Versão da API a ser utilizada'
+        }
       },
+      headers: {
+        AcceptVersion: {
+          description: 'Versão da API a ser utilizada',
+          schema: {
+            type: 'string',
+            example: 'application/json; version=1.0.0'
+          }
+        },
+        IfNoneMatch: {
+          description: 'ETag para validação de cache',
+          schema: {
+            type: 'string',
+            example: '"33a64df551425fcc55e4d42a148795d9f25f89d4"'
+          }
+        },
+        IfModifiedSince: {
+          description: 'Data de última modificação para validação de cache',
+          schema: {
+            type: 'string',
+            example: 'Wed, 18 May 2025 12:28:53 GMT'
+          }
+        }
+      },
+      responses: {
+        NotModified: {
+          description: 'Conteúdo não modificado desde a última requisição'
+        },
+        MethodNotAllowed: {
+          description: 'Método HTTP não permitido para este recurso',
+          content: {
+            'application/json': {
+              schema: {
+                $ref: '#/components/schemas/Error'
+              },
+              example: {
+                success: false,
+                error: 'Method not allowed for this resource'
+              }
+            }
+          }
+        },
+        UnsupportedMediaType: {
+          description: 'Formato de mídia não suportado',
+          content: {
+            'application/json': {
+              schema: {
+                $ref: '#/components/schemas/Error'
+              },
+              example: {
+                success: false,
+                error: 'Unsupported media type'
+              }
+            }
+          }
+        }
+      }
     },
   },
   apis: ['./src/routes/*.js'],
@@ -231,5 +341,16 @@ const options = {
 const specs = swaggerJsdoc(options);
 
 module.exports = (app) => {
-  app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(specs));
+  app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(specs, {
+    explorer: true,
+    swaggerOptions: {
+      docExpansion: 'none',
+      persistAuthorization: true,
+      tagsSorter: 'alpha',
+      operationsSorter: 'alpha',
+      displayRequestDuration: true
+    },
+    customCss: '.swagger-ui .topbar { display: none }',
+    customSiteTitle: 'API RESTful de Pagamentos - Documentação'
+  }));
 };

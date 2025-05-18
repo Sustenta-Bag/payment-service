@@ -10,6 +10,7 @@ Microserviço de simulação de pagamentos usando Node.js, Express e RabbitMQ.
 - Publicação de eventos em filas RabbitMQ
 - Envio de notificações via RabbitMQ após atualizações de pagamento
 - Configuração Docker com MongoDB
+- API RESTful com suporte completo a HATEOAS, caching e versionamento
 
 ## Requisitos
 
@@ -38,28 +39,107 @@ npm run dev
 npm start
 ```
 
-## Testes
 
-```bash
-# Executar todos os testes
-npm test
+## API RESTful
 
-# Executar testes com observação de alterações
-npm run test:watch
+O serviço implementa uma API RESTful completa seguindo os principais padrões e princípios:
 
-# Executar testes com relatório de cobertura
-npm run test:coverage
+### Arquitetura de Recursos
 
-# Executar apenas testes de integração da API
-npm run test:api
+Recursos organizados hierarquicamente com URIs semânticas:
+- `/api/payments` - Coleção de pagamentos
+- `/api/payments/{id}` - Recurso de pagamento específico
+- `/api/payments/{id}/cancel` - Ação de cancelamento
+- `/api/payments/{id}/refund` - Ação de reembolso
 
-# Executar apenas testes dos controladores
-npm run test:controllers
+### HATEOAS (Hypermedia as the Engine of Application State)
+
+Todas as respostas incluem links hipermídia que permitem navegação entre recursos:
+
+```json
+{
+  "data": { 
+    "paymentId": "123",
+    "amount": 99.90,
+    "status": "approved"
+  },
+  "_links": [
+    {
+      "rel": "self",
+      "href": "/api/payments/123",
+      "method": "GET"
+    },
+    {
+      "rel": "refund",
+      "href": "/api/payments/123/refund",
+      "method": "POST"
+    }
+  ]
+}
 ```
 
-Para mais informações sobre testes, consulte:
-- [Documentação de Testes](./docs/TESTING.md)
-- [Guia de Testes Manuais](./docs/MANUAL_TESTING.md)
+### Negociação de Conteúdo
+
+A API suporta múltiplos formatos através de negociação de conteúdo:
+
+```bash
+# JSON padrão
+curl -X GET http://localhost:3000/api/payments/123 \
+  -H "Accept: application/json"
+
+# Formato HAL
+curl -X GET http://localhost:3000/api/payments/123 \
+  -H "Accept: application/hal+json"
+
+# Formato JSON:API
+curl -X GET http://localhost:3000/api/payments/123 \
+  -H "Accept: application/vnd.api+json"
+```
+
+### Cache HTTP
+
+Implementa mecanismos de cache HTTP para otimizar requisições:
+- ETags para validação de conteúdo
+- Cabeçalhos Last-Modified para validação temporal
+- Cache-Control para controle de cache do cliente
+
+### Paginação de Coleções
+
+Coleções de recursos implementam paginação com metadata e links de navegação:
+
+```json
+{
+  "data": {
+    "payments": [...],
+    "_meta": {
+      "totalItems": 50,
+      "itemsPerPage": 10,
+      "currentPage": 2,
+      "totalPages": 5
+    }
+  },
+  "_links": [
+    {"rel": "first", "href": "/api/payments?page=1&limit=10"},
+    {"rel": "prev", "href": "/api/payments?page=1&limit=10"},
+    {"rel": "next", "href": "/api/payments?page=3&limit=10"},
+    {"rel": "last", "href": "/api/payments?page=5&limit=10"}
+  ]
+}
+```
+
+### Versionamento de API
+
+Suporte a versionamento por:
+1. Cabeçalhos HTTP: `Accept: application/json; version=1.0.0`
+2. Parâmetro de query: `?version=1.0.0`
+
+### Perfis de Recursos (RFC 6906)
+
+Documentação semântica dos recursos através de perfis:
+- `/profiles/payment` - Documentação sobre o recurso de pagamento
+- `/profiles/payment/schema.json` - Schema JSON para validação
+
+Para informações detalhadas, consulte nossa [Documentação RESTful](RESTFUL-V2.md).
 
 ## Docker
 
