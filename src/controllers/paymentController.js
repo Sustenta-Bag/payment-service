@@ -1,7 +1,8 @@
 const { v4: uuidv4 } = require('uuid');
 const Payment = require('../models/payment');
-const mercadoPagoService = require('../services/mercadoPago');
+const paymentSimulationService = require('../services/paymentSimulation');
 const rabbitMQService = require('../services/rabbitMQ');
+const notificationService = require('../services/notificationService');
 const config = require('../config/config');
 const logger = require('../utils/logger');
 
@@ -49,15 +50,13 @@ exports.createPayment = async (req, res) => {
       payer,
       callbackUrl: callbackUrl || 'https://seu-site.com/checkout'
     };
+      const paymentIntent = await paymentSimulationService.createPaymentIntent(paymentData);
     
-    const preference = await mercadoPagoService.createPreference(paymentData);
-    
-    payment.paymentUrl = preference.init_point;
-    payment.mercadopagoId = preference.id;
+    payment.paymentUrl = paymentIntent.init_point;
+    payment.paymentId = paymentIntent.id;
     payment.updatedAt = new Date();
     await payment.save();
-    
-    await rabbitMQService.publish(
+      await rabbitMQService.publish(
       config.rabbitmq.exchanges.payments,
       'payment.request',
       {
@@ -66,7 +65,7 @@ exports.createPayment = async (req, res) => {
         orderId,
         userId,
         amount,
-        paymentUrl: preference.init_point
+        paymentUrl: paymentIntent.init_point
       }
     );
     
@@ -76,7 +75,7 @@ exports.createPayment = async (req, res) => {
         paymentId: payment._id,
         orderId,
         amount,
-        paymentUrl: preference.init_point
+        paymentUrl: paymentIntent.init_point
       }
     });
   } catch (error) {
@@ -122,7 +121,7 @@ exports.getPayment = async (req, res) => {
 };
 
 /**
- * Recebe notificações webhook do Mercado Pago
+ * Recebe notificações simuladas de pagamento
  * @param {Object} req Request
  * @param {Object} res Response
  * @returns {Promise<void>}
@@ -133,26 +132,36 @@ exports.webhook = async (req, res) => {
     
     res.status(200).send('OK');
     
-    const paymentInfo = await mercadoPagoService.processWebhook(notification);
+    const paymentInfo = await paymentSimulationService.processPaymentNotification(notification);
     if (!paymentInfo) {
       logger.info('Notificação ignorada: não é um evento de pagamento');
       return;
     }
     
     const payment = await Payment.findOne({ 
-      orderId: paymentInfo.metadata.externalReference || paymentInfo.metadata.orderId 
+      orderId: paymentInfo.metadata.orderId || paymentInfo.metadata.externalReference 
     });
     
     if (!payment) {
-      logger.error(`Pagamento não encontrado para referência externa: ${paymentInfo.metadata.externalReference}`);
+      logger.error(`Pagamento não encontrado para pedido: ${paymentInfo.metadata.orderId}`);
       return;
     }
     
     payment.status = paymentInfo.status;
-    payment.mercadopagoId = paymentInfo.mercadopagoId;
+    payment.paymentId = paymentInfo.paymentId;
     payment.paymentMethod = paymentInfo.paymentMethod;
     payment.updatedAt = new Date();
     await payment.save();
+    
+    // Enviar notificação ao usuário sobre o status do pagamento
+    if (payment.status === 'approved' || payment.status === 'rejected') {
+      await notificationService.sendPaymentNotification(
+        payment.userId,
+        payment.status,
+        payment
+      );
+      logger.info(`Notificação de pagamento ${payment.status} enviada para usuário ${payment.userId}`);
+    }
     
     await rabbitMQService.publish(
       config.rabbitmq.exchanges.payments,

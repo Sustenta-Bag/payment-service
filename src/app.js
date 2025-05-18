@@ -5,6 +5,7 @@ const morgan = require('morgan');
 const mongoose = require('mongoose');
 const config = require('./config/config');
 const paymentRoutes = require('./routes/paymentRoutes');
+const simulationRoutes = require('./routes/simulationRoutes');
 const testRoutes = require('./routes/testRoutes');
 const setupSwagger = require('./config/swagger');
 const logger = require('./utils/logger');
@@ -17,6 +18,7 @@ app.use(express.json());
 app.use(morgan('combined'));
 
 app.use('/api/payments', paymentRoutes);
+app.use('/api/payment-simulation', simulationRoutes);
 
 if (config.env === 'development' || config.env === 'test') {
   app.use('/api/test', testRoutes);
@@ -102,10 +104,9 @@ app.get('/', (req, res) => {
       }
     </style>
   </head>
-  <body>
-    <header>
+  <body>    <header>
       <h1>Serviço de Pagamento</h1>
-      <p>API para processamento de pagamentos com integração ao Mercado Pago</p>
+      <p>API para processamento de simulação de pagamentos</p>
     </header>
 
     <main>
@@ -116,15 +117,25 @@ app.get('/', (req, res) => {
 
       <section>
         <h2>Recursos Disponíveis</h2>
-        <div class="container">
-          <div class="card">
+        <div class="container">          <div class="card">
             <h3>Pagamentos</h3>
-            <p>Crie e gerencie pagamentos via Mercado Pago.</p>
+            <p>Crie e gerencie pagamentos através do serviço de simulação.</p>
             <p><strong>Endpoints:</strong></p>
             <ul>
               <li><code>POST /api/payments</code> - Criar novo pagamento</li>
               <li><code>GET /api/payments/:id</code> - Obter detalhes de um pagamento</li>
               <li><code>POST /api/payments/webhook</code> - Webhook para notificações</li>
+            </ul>
+          </div>
+
+          <div class="card">
+            <h3>Simulação de Pagamento</h3>
+            <p>Interface para simular aprovação, rejeição ou pendência de pagamentos.</p>
+            <p><strong>Endpoints:</strong></p>
+            <ul>
+              <li><code>GET /api/payment-simulation/:id</code> - Página de simulação</li>
+              <li><code>POST /api/payment-simulation/process</code> - Processar simulação</li>
+              <li><code>GET /api/payment-simulation/status/:orderId</code> - Status de pagamento</li>
             </ul>
           </div>
 

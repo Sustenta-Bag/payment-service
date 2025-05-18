@@ -26,13 +26,14 @@ const PaymentSchema = new mongoose.Schema({
   }],
   status: { 
     type: String, 
-    enum: ['pending', 'approved', 'rejected', 'cancelled', 'refunded'],
+    enum: ['pending', 'approved', 'rejected'],
     default: 'pending'
   },
   paymentMethod: { 
-    type: String 
+    type: String,
+    default: 'simulation'
   },
-  mercadopagoId: { 
+  paymentId: { 
     type: String 
   },
   paymentUrl: { 

@@ -5,9 +5,9 @@ const options = {
   definition: {
     openapi: '3.0.0',
     info: {
-      title: 'API de Pagamentos',
+      title: 'API de Simulação de Pagamentos',
       version: '1.0.0',
-      description: 'API para processamento de pagamentos com integração ao Mercado Pago',
+      description: 'API para processamento de simulação de pagamentos',
       contact: {
         name: 'Suporte',
         email: 'suporte@exemplo.com',
@@ -39,19 +39,18 @@ const options = {
             amount: {
               type: 'number',
               description: 'Valor total do pagamento',
-            },
-            status: {
+            },            status: {
               type: 'string',
-              enum: ['pending', 'approved', 'rejected', 'refunded'],
+              enum: ['pending', 'approved', 'rejected'],
               description: 'Status do pagamento',
             },
             paymentUrl: {
               type: 'string',
-              description: 'URL para pagamento no Mercado Pago',
+              description: 'URL para simulação de pagamento',
             },
-            mercadopagoId: {
+            paymentId: {
               type: 'string',
-              description: 'ID do pagamento no Mercado Pago',
+              description: 'ID do pagamento simulado',
             },
             paymentMethod: {
               type: 'string',
