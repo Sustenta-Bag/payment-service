@@ -7,7 +7,6 @@ class RabbitMQService {
     this.connection = null;
     this.channel = null;
   }
-
   /**
    * Conecta com o servidor RabbitMQ
    * @returns {Promise<void>}
@@ -15,8 +14,7 @@ class RabbitMQService {
   async connect() {
     try {
       this.connection = await amqp.connect(config.rabbitmq.url);
-      this.channel = await this.connection.createChannel();
-      await this.channel.assertExchange(
+      this.channel = await this.connection.createChannel();      await this.channel.assertExchange(
         config.rabbitmq.exchanges.payments, 
         'topic', 
         { durable: true }
@@ -36,16 +34,24 @@ class RabbitMQService {
         config.rabbitmq.queues.paymentResults, 
         { durable: true }
       );
+      await this.channel.assertQueue(
+        config.rabbitmq.queues.notifications, 
+        { durable: true }
+      );
       
       await this.channel.bindQueue(
         config.rabbitmq.queues.paymentRequests,
         config.rabbitmq.exchanges.payments,
         'payment.request'
-      );
-      await this.channel.bindQueue(
+      );      await this.channel.bindQueue(
         config.rabbitmq.queues.paymentResults,
         config.rabbitmq.exchanges.payments,
         'payment.result'
+      );
+      await this.channel.bindQueue(
+        config.rabbitmq.queues.notifications,
+        config.rabbitmq.exchanges.notifications,
+        'notification'
       );
       
       logger.info('Conectado ao RabbitMQ');

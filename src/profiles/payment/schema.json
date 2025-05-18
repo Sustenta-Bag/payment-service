@@ -1,0 +1,109 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "type": "object",
+  "title": "Payment Schema",
+  "description": "Schema de um recurso de pagamento",
+  "required": ["orderId", "userId", "amount", "status"],
+  "properties": {
+    "_id": {
+      "type": "string",
+      "description": "ID único do pagamento"
+    },
+    "orderId": {
+      "type": "string",
+      "description": "ID único do pedido"
+    },
+    "userId": {
+      "type": "string",
+      "description": "ID do usuário"
+    },
+    "amount": {
+      "type": "number",
+      "description": "Valor total do pagamento"
+    },
+    "currency": {
+      "type": "string",
+      "default": "BRL",
+      "description": "Moeda do pagamento"
+    },
+    "items": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "title": {
+            "type": "string",
+            "description": "Título do item"
+          },
+          "description": {
+            "type": "string",
+            "description": "Descrição do item"
+          },
+          "quantity": {
+            "type": "integer",
+            "description": "Quantidade do item"
+          },
+          "unitPrice": {
+            "type": "number",
+            "description": "Preço unitário do item"
+          }
+        }
+      },
+      "description": "Itens do pagamento"
+    },
+    "status": {
+      "type": "string",
+      "enum": ["pending", "approved", "rejected", "cancelled", "refunded"],
+      "default": "pending",
+      "description": "Status do pagamento"
+    },
+    "paymentMethod": {
+      "type": "string",
+      "default": "simulation",
+      "description": "Método de pagamento"
+    },
+    "paymentId": {
+      "type": "string",
+      "description": "ID do pagamento no provedor"
+    },
+    "paymentUrl": {
+      "type": "string",
+      "description": "URL para simulação de pagamento"
+    },
+    "metadata": {
+      "type": "object",
+      "description": "Metadados adicionais"
+    },
+    "createdAt": {
+      "type": "string",
+      "format": "date-time",
+      "description": "Data de criação do pagamento"
+    },
+    "updatedAt": {
+      "type": "string",
+      "format": "date-time",
+      "description": "Data da última atualização do pagamento"
+    },
+    "_links": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "rel": {
+            "type": "string",
+            "description": "Relação do link"
+          },
+          "href": {
+            "type": "string",
+            "description": "URL do link"
+          },
+          "method": {
+            "type": "string",
+            "description": "Método HTTP do link"
+          }
+        }
+      },
+      "description": "Links HATEOAS relacionados ao recurso"
+    }
+  }
+}
