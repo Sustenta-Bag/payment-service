@@ -1,6 +1,12 @@
 const express = require('express');
 const paymentController = require('../controllers/paymentController');
+const cacheMiddleware = require('../middlewares/cacheMiddleware');
+const methodValidation = require('../middlewares/methodValidationMiddleware');
+const Payment = require('../models/payment');
 const router = express.Router();
+
+// Middleware para validação de preflight CORS
+router.use(methodValidation.handlePreflight());
 
 /**
  * @swagger
@@ -68,7 +74,10 @@ const router = express.Router();
  *       500:
  *         description: Erro interno do servidor
  */
-router.post('/', paymentController.createPayment);
+router.post('/', 
+  methodValidation.methodValidator(['POST']),
+  paymentController.createPayment
+);
 /**
  * @swagger
  * /api/payments/{id}:
@@ -90,7 +99,104 @@ router.post('/', paymentController.createPayment);
  *       500:
  *         description: Erro interno do servidor
  */
-router.get('/:id', paymentController.getPayment);
+router.get('/:id', 
+  methodValidation.methodValidator(['GET', 'HEAD', 'OPTIONS']),
+  cacheMiddleware.setCacheHeaders(60),
+  cacheMiddleware.setEtagHeader(),
+  cacheMiddleware.setLastModifiedHeader(async (req) => {
+    const payment = await Payment.findById(req.params.id);
+    return payment ? payment.updatedAt || payment.createdAt : null;
+  }),
+  paymentController.getPayment
+);
+
+/**
+ * @swagger
+ * /api/payments:
+ *   get:
+ *     summary: Lista todos os pagamentos com paginação
+ *     tags: [Pagamentos]
+ *     parameters:
+ *       - in: query
+ *         name: page
+ *         schema:
+ *           type: integer
+ *           default: 1
+ *         description: Número da página
+ *       - in: query
+ *         name: limit
+ *         schema:
+ *           type: integer
+ *           default: 10
+ *         description: Itens por página
+ *     responses:
+ *       200:
+ *         description: Lista de pagamentos
+ *       500:
+ *         description: Erro interno do servidor
+ */
+router.get('/', 
+  methodValidation.methodValidator(['GET', 'HEAD', 'OPTIONS']),
+  cacheMiddleware.setCacheHeaders(30), 
+  cacheMiddleware.setEtagHeader(), 
+  paymentController.listPayments
+);
+
+/**
+ * @swagger
+ * /api/payments/{id}/cancel:
+ *   post:
+ *     summary: Cancela um pagamento
+ *     tags: [Pagamentos]
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: ID do pagamento
+ *     responses:
+ *       200:
+ *         description: Pagamento cancelado com sucesso
+ *       404:
+ *         description: Pagamento não encontrado
+ *       400:
+ *         description: Pagamento não pode ser cancelado
+ *       500:
+ *         description: Erro interno do servidor
+ */
+router.post('/:id/cancel', 
+  methodValidation.methodValidator(['POST']),
+  paymentController.cancelPayment
+);
+
+/**
+ * @swagger
+ * /api/payments/{id}/refund:
+ *   post:
+ *     summary: Reembolsa um pagamento
+ *     tags: [Pagamentos]
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: ID do pagamento
+ *     responses:
+ *       200:
+ *         description: Pagamento reembolsado com sucesso
+ *       404:
+ *         description: Pagamento não encontrado
+ *       400:
+ *         description: Pagamento não pode ser reembolsado
+ *       500:
+ *         description: Erro interno do servidor
+ */
+router.post('/:id/refund', 
+  methodValidation.methodValidator(['POST']),
+  paymentController.refundPayment
+);
 
 /**
  * @swagger

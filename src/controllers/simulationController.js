@@ -5,6 +5,7 @@ const notificationService = require('../services/notificationService');
 const config = require('../config/config');
 const logger = require('../utils/logger');
 const { renderPaymentSimulationPage } = require('../utils/templates');
+const hateoasUtils = require('../utils/hateoasUtils');
 
 /**
  * Renderiza a página de simulação de pagamento
@@ -126,15 +127,34 @@ exports.processPaymentSimulation = async (req, res) => {
     
     logger.info(`Pagamento ${payment.orderId} processado com simulação: ${payment.status}`);
     
-    return res.status(200).json({
-      success: true,
-      data: {
-        paymentId: payment._id,
-        orderId: payment.orderId,
-        status: payment.status,
-        message: `Pagamento ${paymentResult.status}`
+    // Generate HATEOAS links for the response
+    const links = [
+      {
+        rel: 'self',
+        href: `${req.protocol}://${req.get('host')}/api/payment-simulation/${payment._id}`,
+        method: 'GET'
+      },
+      {
+        rel: 'payment',
+        href: `${req.protocol}://${req.get('host')}/api/payments/${payment._id}`,
+        method: 'GET'
       }
-    });
+    ];
+    
+    return res.status(200).json(
+      hateoasUtils.createHateoasResponse(
+        true, 
+        {
+          paymentId: payment._id,
+          orderId: payment.orderId,
+          status: payment.status,
+          message: `Pagamento ${paymentResult.status}`
+        },
+        links,
+        null,
+        req
+      )
+    );
   } catch (error) {
     logger.error(`Erro ao processar simulação: ${error.message}`);
     return res.status(500).json({

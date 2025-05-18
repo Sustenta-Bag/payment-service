@@ -15,7 +15,7 @@ class PaymentSimulationService {
       }, 0);
       
       // Cria uma URL simulada para pagamento
-      const paymentUrl = `/payment-simulation/${simulatedId}?orderId=${paymentData.orderId}&amount=${totalAmount}`;
+      const paymentUrl = `/api/payment-simulation/${simulatedId}?orderId=${paymentData.orderId}&amount=${totalAmount}`;
       
       logger.info(`Simulação de pagamento criada: ${paymentData.orderId}`);
       
@@ -137,6 +137,50 @@ class PaymentSimulationService {
     } catch (error) {
       logger.error(`Erro ao rejeitar pagamento: ${error.message}`);
       throw new Error(`Erro ao rejeitar pagamento: ${error.message}`);
+    }
+  }
+
+  /**
+   * Simula o cancelamento de um pagamento
+   * @param {String} paymentId ID do pagamento
+   * @returns {Promise<Object>} Resultado da operação
+   */
+  async cancelPayment(paymentId) {
+    try {
+      logger.info(`Simulando cancelamento de pagamento: ${paymentId}`);
+      
+      // Em um cenário real, chamaria a API do gateway de pagamento
+      return {
+        id: paymentId,
+        status: 'cancelled',
+        cancelled_at: new Date().toISOString(),
+        message: 'Pagamento cancelado com sucesso'
+      };
+    } catch (error) {
+      logger.error(`Erro ao cancelar pagamento: ${error.message}`);
+      throw new Error(`Erro ao cancelar pagamento: ${error.message}`);
+    }
+  }
+  
+  /**
+   * Simula o reembolso de um pagamento
+   * @param {String} paymentId ID do pagamento
+   * @returns {Promise<Object>} Resultado da operação
+   */
+  async refundPayment(paymentId) {
+    try {
+      logger.info(`Simulando reembolso de pagamento: ${paymentId}`);
+      
+      // Em um cenário real, chamaria a API do gateway de pagamento
+      return {
+        id: paymentId,
+        status: 'refunded',
+        refunded_at: new Date().toISOString(),
+        message: 'Pagamento reembolsado com sucesso'
+      };
+    } catch (error) {
+      logger.error(`Erro ao reembolsar pagamento: ${error.message}`);
+      throw new Error(`Erro ao reembolsar pagamento: ${error.message}`);
     }
   }
 }
