@@ -12,7 +12,8 @@
     "test:api": "jest tests/integration/api.test.js",
     "test:controllers": "jest tests/controllers",
     "test:notification": "node test-notification.js",
-    "test:notification:direct": "node test-notification-direct.js"
+    "test:notification:direct": "node test-notification-direct.js",
+    "test:monolith": "node test-monolith-integration.js"
   },
   "repository": {
     "type": "git",
@@ -20,6 +21,7 @@
   },
   "dependencies": {
     "amqplib": "^0.10.3",
+    "axios": "^1.6.2",
     "cors": "^2.8.5",
     "dotenv": "^16.0.3",
     "express": "^4.18.2",

@@ -1,4 +1,5 @@
 const rabbitMQService = require('./rabbitMQ');
+const monolithClient = require('./monolithClient');
 const config = require('../config/config');
 const logger = require('../utils/logger');
 
@@ -9,12 +10,19 @@ class NotificationService {  /**
    * @param {String} body Corpo da notificação
    * @param {Object} data Dados adicionais da notificação
    * @returns {Promise<boolean>} Se a notificação foi enviada com sucesso
-   */  
-  async sendNotification(userId, title, body, data = {}) {
+   */    async sendNotification(userId, title, body, data = {}) {
     logger.info(`Enviando notificação para o usuário: ${userId} | Título: ${title}`);
     try {
+      // Buscar o token FCM do usuário no monolito
+      const fcmToken = await monolithClient.getUserFcmToken(userId);
+      
+      if (!fcmToken) {
+        logger.warn(`Token FCM não encontrado para o usuário ${userId}. Notificação não enviada.`);
+        return false;
+      }
+      
       const notificationData = {
-        to: "c0_upvfUQr62sCIQOfCfrl:APA91bFgN19CkI73zEpcoeY1VjbB2ZbSZrK2xHDPBU3oTMY-0Uet1JVbf1tOAzrEtP08uJrliS2KVd-Vp80_YW2pA_RyKs_YQPz58WZhwJ0xaqJ1Ag4msRE",
+        to: fcmToken,
         notification: {
           title,
           body
