@@ -5,9 +5,14 @@ const morgan = require('morgan');
 const mongoose = require('mongoose');
 const config = require('./config/config');
 const paymentRoutes = require('./routes/paymentRoutes');
+const simulationRoutes = require('./routes/simulationRoutes');
 const testRoutes = require('./routes/testRoutes');
+const profileRoutes = require('./routes/profileRoutes');
 const setupSwagger = require('./config/swagger');
 const logger = require('./utils/logger');
+const versionMiddleware = require('./middlewares/versionMiddleware');
+const contentNegotiationMiddleware = require('./middlewares/contentNegotiationMiddleware');
+const paginationMiddleware = require('./middlewares/paginationMiddleware');
 
 const app = express();
 
@@ -16,7 +21,18 @@ app.use(cors());
 app.use(express.json());
 app.use(morgan('combined'));
 
+// Adiciona middleware de versionamento para todas as rotas da API
+app.use('/api', versionMiddleware.addVersionHeaders('1.0.0'));
+
+// Adiciona middleware de negociação de conteúdo para todas as rotas da API
+app.use('/api', contentNegotiationMiddleware.contentNegotiation());
+
+// Adiciona middleware de paginação para todas as rotas de coleção da API
+app.use('/api', paginationMiddleware);
+
 app.use('/api/payments', paymentRoutes);
+app.use('/api/payment-simulation', simulationRoutes);
+app.use('/profiles', profileRoutes);
 
 if (config.env === 'development' || config.env === 'test') {
   app.use('/api/test', testRoutes);
@@ -30,6 +46,49 @@ if (config.env === 'development') {
   app.use('/api/test', testRoutes);
   logger.info('Rotas de teste habilitadas');
 }
+
+app.get('/api', (req, res) => {
+  const baseUrl = `${req.protocol}://${req.get('host')}`;
+  
+  const links = [
+    {
+      rel: 'payments',
+      href: `${baseUrl}/api/payments`,
+      method: 'GET',
+      description: 'Lista todos os pagamentos'
+    },
+    {
+      rel: 'create-payment',
+      href: `${baseUrl}/api/payments`,
+      method: 'POST',
+      description: 'Cria um novo pagamento'
+    },
+    {
+      rel: 'payment-simulation',
+      href: `${baseUrl}/api/payment-simulation`,
+      method: 'GET',
+      description: 'Acesso à interface de simulação de pagamentos'
+    },
+    {
+      rel: 'health',
+      href: `${baseUrl}/health`,
+      method: 'GET',
+      description: 'Verifica a saúde da aplicação'
+    },
+    {
+      rel: 'api-docs',
+      href: `${baseUrl}/api-docs`,
+      method: 'GET',
+      description: 'Documentação Swagger da API'
+    }
+  ];
+  
+  res.status(200).json({
+    name: 'API de Pagamentos',
+    version: '1.0.0',
+    _links: links
+  });
+});
 
 app.get('/health', (req, res) => {
   res.status(200).json({ status: 'OK', timestamp: new Date() });
@@ -102,10 +161,9 @@ app.get('/', (req, res) => {
       }
     </style>
   </head>
-  <body>
-    <header>
+  <body>    <header>
       <h1>Serviço de Pagamento</h1>
-      <p>API para processamento de pagamentos com integração ao Mercado Pago</p>
+      <p>API para processamento de simulação de pagamentos</p>
     </header>
 
     <main>
@@ -116,15 +174,38 @@ app.get('/', (req, res) => {
 
       <section>
         <h2>Recursos Disponíveis</h2>
-        <div class="container">
-          <div class="card">
+        <div class="container">          <div class="card">
             <h3>Pagamentos</h3>
-            <p>Crie e gerencie pagamentos via Mercado Pago.</p>
+            <p>Crie e gerencie pagamentos através do serviço de simulação.</p>
             <p><strong>Endpoints:</strong></p>
             <ul>
               <li><code>POST /api/payments</code> - Criar novo pagamento</li>
               <li><code>GET /api/payments/:id</code> - Obter detalhes de um pagamento</li>
               <li><code>POST /api/payments/webhook</code> - Webhook para notificações</li>
+            </ul>
+          </div>
+
+          <div class="card">
+            <h3>Simulação de Pagamento</h3>
+            <p>Interface para simular aprovação, rejeição ou pendência de pagamentos.</p>
+            <p><strong>Endpoints:</strong></p>
+            <ul>
+              <li><code>GET /api/payment-simulation/:id</code> - Página de simulação</li>
+              <li><code>POST /api/payment-simulation/process</code> - Processar simulação</li>
+              <li><code>GET /api/payment-simulation/status/:orderId</code> - Status de pagamento</li>
+            </ul>
+          </div>
+
+          <div class="card">
+            <h3>Perfis</h3>
+            <p>Gerencie os perfis dos usuários que realizam os pagamentos.</p>
+            <p><strong>Endpoints:</strong></p>
+            <ul>
+              <li><code>GET /api/profiles</code> - Listar perfis</li>
+              <li><code>POST /api/profiles</code> - Criar novo perfil</li>
+              <li><code>GET /api/profiles/:id</code> - Obter detalhes de um perfil</li>
+              <li><code>PUT /api/profiles/:id</code> - Atualizar perfil</li>
+              <li><code>DELETE /api/profiles/:id</code> - Remover perfil</li>
             </ul>
           </div>
 

@@ -30,9 +30,10 @@ const PaymentSchema = new mongoose.Schema({
     default: 'pending'
   },
   paymentMethod: { 
-    type: String 
+    type: String,
+    default: 'simulation'
   },
-  mercadopagoId: { 
+  paymentId: { 
     type: String 
   },
   paymentUrl: { 
