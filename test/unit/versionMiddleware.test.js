@@ -42,7 +42,8 @@ describe('versionMiddleware', () => {
       expect(handler).toHaveBeenCalled();
     });
     it('deve retornar 406 se versão não suportada', () => {
-      const handlers = { '1.0.0': jest.fn() };
+      const handlers = {};
+      req.get = jest.fn((h) => h === 'Accept' ? undefined : 'localhost:3000');
       req.query.version = '9.9.9';
       res.status = jest.fn().mockReturnThis();
       versionMiddleware.versionedEndpoint(handlers)(req, res, next);

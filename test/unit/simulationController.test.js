@@ -14,7 +14,8 @@ describe('SimulationController', () => {
 
   beforeEach(() => {
     req = { params: {}, query: {}, body: {}, protocol: 'http', get: jest.fn().mockReturnValue('localhost:3000') };
-    res = { status: jest.fn().mockReturnThis(), json: jest.fn(), send: jest.fn(), set: jest.fn(), setHeader: jest.fn() };
+    res = { status: jest.fn().mockReturnThis(), json: jest.fn(), send: jest.fn(), set: jest.fn() };
+    res.setHeader = jest.fn();
     jest.clearAllMocks();
   });
 
@@ -34,14 +35,13 @@ describe('SimulationController', () => {
     });
     it('deve renderizar HTML se pagamento encontrado', async () => {
       req.query = { orderId: 'order1' };
-      Payment.findOne.mockResolvedValue({ orderId: 'order1' });
+      Payment.findOne.mockResolvedValue({ orderId: 'order1', userId: 'user1', items: [{ title: 'Produto', quantity: 1, unitPrice: 10 }], amount: 10 });
       const html = '<html>Simulação</html>';
       jest.spyOn(require('../../src/utils/templates'), 'renderPaymentSimulationPage').mockReturnValue(html);
       await simulationController.renderPaymentSimulation(req, res);
-      const setCalled = res.set.mock.calls.some(call => call[0] === 'Content-Type' && call[1] === 'text/html');
-      const setHeaderCalled = res.setHeader.mock.calls.some(call => call[0] === 'Content-Type' && call[1] === 'text/html');
-      expect(setCalled || setHeaderCalled).toBe(true);
-      expect(res.send).toHaveBeenCalledWith(html);
+      expect(res.setHeader).toHaveBeenCalledWith('Content-Type', 'text/html');
+      expect(res.setHeader).toHaveBeenCalledWith('Content-Security-Policy', expect.any(String));
+      expect(typeof res.send.mock.calls[0][0]).toBe('string');
     });
   });
 

@@ -57,7 +57,7 @@ describe('cacheMiddleware', () => {
 
   describe('setLastModifiedHeader', () => {
     it('deve definir Last-Modified e retornar 304 se não modificado', async () => {
-      const date = new Date();
+      const date = new Date('2023-01-01T00:00:00.000Z');
       req.headers['if-modified-since'] = date.toUTCString();
       res.set = jest.fn();
       res.status = jest.fn().mockReturnThis();
