@@ -2,6 +2,7 @@ const Payment = require('../models/payment');
 const paymentSimulationService = require('../services/paymentSimulation');
 const rabbitMQService = require('../services/rabbitMQ');
 const notificationService = require('../services/notificationService');
+const monolithClient = require('../services/monolithClient');
 const config = require('../config/config');
 const logger = require('../utils/logger');
 const { renderPaymentSimulationPage } = require('../utils/templates');
@@ -94,24 +95,41 @@ exports.processPaymentSimulation = async (req, res) => {
           success: false,
           message: 'Ação de pagamento inválida'
         });
-    }    // Atualiza o pagamento no banco de dados
-    payment.status = paymentResult.status;
+    }    
     payment.paymentMethod = paymentResult.paymentMethod;
     payment.updatedAt = new Date();
     await payment.save();
     
-    console.log('Pagamento atualizado:', payment);
-    // Envia notificação se o pagamento foi aprovado ou rejeitado
+    console.log('🔄 Pagamento atualizado:', payment);
+    logger.info(`🔄 Pagamento atualizado no banco: ${payment.orderId} -> ${payment.status}`);
+    
     if (paymentResult.status === 'approved' || paymentResult.status === 'rejected') {
+      logger.info(`📱 Enviando notificação para usuário ${payment.userId}...`);
       await notificationService.sendPaymentNotification(
         payment.userId,
         paymentResult.status,
         payment
       );
-      logger.info(`Notificação de pagamento ${paymentResult.status} enviada para o usuário ${payment.userId}`);
+      logger.info(`✅ Notificação de pagamento ${paymentResult.status} enviada para o usuário ${payment.userId}`);
+    }
+
+    logger.info(`🔍 Verificando se deve notificar monólito. Status: ${paymentResult.status}`);
+    if (paymentResult.status === 'approved') {
+      logger.info(`📤 INICIANDO webhook para monólito: orderId=${payment.orderId}, status=approved`);
+      try {
+        await monolithClient.notifyPaymentStatusUpdate(
+          payment.orderId,
+          'approved',
+          payment._id
+        );
+        logger.info(`✅ Monólito notificado sobre aprovação do pagamento ${payment.orderId}`);
+      } catch (webhookError) {
+        logger.error(`❌ ERRO ao notificar monólito: ${webhookError.message}`);
+      }
+    } else {
+      logger.info(`❌ Webhook NÃO será enviado. Status: ${paymentResult.status} (esperado: approved)`);
     }
     
-    // Publica evento de atualização de pagamento
     await rabbitMQService.publish(
       config.rabbitmq.exchanges.payments,
       'payment.result',
