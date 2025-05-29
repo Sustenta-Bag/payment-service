@@ -10,6 +10,10 @@ const PaymentSchema = new mongoose.Schema({
     type: String, 
     required: true 
   },
+  authToken: {
+    type: String,
+    required: false 
+  },
   amount: { 
     type: Number, 
     required: true 

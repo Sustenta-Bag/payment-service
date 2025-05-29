@@ -15,24 +15,29 @@ const hateoasUtils = require('../utils/hateoasUtils');
  */
 exports.createPayment = async (req, res) => {
   try {
-    const { userId, items, callbackUrl, payer } = req.body;
+    logger.info('📥 Recebendo requisição de criação de pagamento');
+    logger.info('📋 Body da requisição:', JSON.stringify(req.body, null, 2));
     
-    if (!userId || !items || items.length === 0 || !payer) {
+    const { userId, orderId, items, callbackUrl, payer, authToken } = req.body;
+    
+    logger.info(`🔍 Validando dados: userId=${userId}, orderId=${orderId}, items=${items?.length}, payer=${payer ? 'sim' : 'não'}`);
+    
+    if (!userId || !orderId || !items || items.length === 0 || !payer) {
+      logger.error('❌ Validação falhou - dados incompletos');
+      logger.error(`❌ Detalhes: userId=${userId}, orderId=${orderId}, items=${items}, itemsLength=${items?.length}, payer=${payer}`);
       return res.status(400).json({ 
         success: false, 
-        message: 'Dados incompletos para criação do pagamento' 
+        message: 'Dados incompletos para criação do pagamento. userId, orderId, items e payer são obrigatórios' 
       });
     }
 
     const amount = items.reduce((total, item) => {
       return total + (item.unitPrice * item.quantity);
     }, 0);
-
-    const orderId = uuidv4();
-    
-    const payment = new Payment({
+      const payment = new Payment({
       orderId,
       userId,
+      authToken,
       amount,
       items: items.map(item => ({
         title: item.title,
@@ -121,6 +126,40 @@ exports.getPayment = async (req, res) => {
     return res.status(500).json({
       success: false,
       message: 'Erro ao obter pagamento',
+      error: error.message
+    });
+  }
+};
+
+/**
+ * Obtém informações de um pagamento por Order ID
+ * @param {Object} req Request
+ * @param {Object} res Response
+ * @returns {Promise<void>}
+ */
+exports.getPaymentByOrderId = async (req, res) => {
+  try {
+    const { orderId } = req.params;
+    
+    const payment = await Payment.findOne({ orderId });
+    if (!payment) {
+      return res.status(404).json({
+        success: false,
+        message: 'Pagamento não encontrado para este orderId'
+      });
+    }
+    
+    // Generate HATEOAS links for the response
+    const links = hateoasUtils.generatePaymentLinks(payment._id, req);
+    
+    return res.status(200).json(
+      hateoasUtils.createHateoasResponse(true, payment, links, null, req)
+    );
+  } catch (error) {
+    logger.error(`Erro ao obter pagamento por orderId: ${error.message}`);
+    return res.status(500).json({
+      success: false,
+      message: 'Erro ao obter pagamento por orderId',
       error: error.message
     });
   }

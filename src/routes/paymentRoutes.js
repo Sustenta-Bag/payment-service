@@ -217,4 +217,36 @@ router.post('/:id/refund',
  */
 router.post('/webhook', paymentController.webhook);
 
+/**
+ * @swagger
+ * /api/payments/order/{orderId}:
+ *   get:
+ *     summary: Obtém informações de um pagamento por Order ID
+ *     tags: [Pagamentos]
+ *     parameters:
+ *       - in: path
+ *         name: orderId
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: Order ID do pagamento
+ *     responses:
+ *       200:
+ *         description: Informações do pagamento
+ *       404:
+ *         description: Pagamento não encontrado para este orderId
+ *       500:
+ *         description: Erro interno do servidor
+ */
+router.get('/order/:orderId', 
+  methodValidation.methodValidator(['GET', 'HEAD', 'OPTIONS']),
+  cacheMiddleware.setCacheHeaders(60),
+  cacheMiddleware.setEtagHeader(),
+  cacheMiddleware.setLastModifiedHeader(async (req) => {
+    const payment = await Payment.findOne({ orderId: req.params.orderId });
+    return payment ? payment.updatedAt || payment.createdAt : null;
+  }),
+  paymentController.getPaymentByOrderId
+);
+
 module.exports = router;
