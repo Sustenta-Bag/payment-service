@@ -1,5 +1,6 @@
 const axios = require('axios');
 const logger = require('../utils/logger');
+const { log } = require('winston');
 
 class MonolithClient {
   constructor() {
@@ -14,12 +15,13 @@ class MonolithClient {
   async getUserFcmToken(userId) {
     try {
       logger.info(`Recuperando token FCM do usuário ${userId} do monolito`);
+      logger.debug(`URL de autenticação: ${this.authBaseUrl}/user/${userId}/fcm-token`);
       
       const response = await axios.get(`${this.authBaseUrl}/user/${userId}/fcm-token`, {
         headers: {
           'Content-Type': 'application/json'
         },
-        timeout: 5000 // timeout de 5 segundos
+        timeout: 5000 
       });
 
       if (response.status === 200 && response.data && response.data.token) {
@@ -31,7 +33,6 @@ class MonolithClient {
       return null;
     } catch (error) {
       logger.error(`Erro ao recuperar token FCM do monolito: ${error.message}`);
-      // Mesmo em caso de erro, continuamos o fluxo retornando null
       return null;
     }
   }
@@ -56,7 +57,7 @@ class MonolithClient {
         headers: {
           'Content-Type': 'application/json'
         },
-        timeout: 10000 // timeout de 10 segundos
+        timeout: 10000
       });
 
       if (response.status === 200) {
