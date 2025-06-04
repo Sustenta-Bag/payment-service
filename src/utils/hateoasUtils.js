@@ -145,9 +145,10 @@ exports.generateRelationshipLinks = (resource, req) => {
  * @param {Array} links - HATEOAS links
  * @param {String} message - Optional message
  * @param {Object} req - Express request object (optional)
+ * @param {Object} meta - Optional metadata (pagination, stats, etc.)
  * @returns {Object} HATEOAS formatted response
  */
-exports.createHateoasResponse = (success, data, links, message = null, req = null) => {
+exports.createHateoasResponse = (success, data, links, message = null, req = null, meta = null) => {
   const response = {
     success,
     _links: links
@@ -169,6 +170,11 @@ exports.createHateoasResponse = (success, data, links, message = null, req = nul
   
   if (message) {
     response.message = message;
+  }
+  
+  // Add metadata if provided
+  if (meta) {
+    response._meta = meta;
   }
   
   return response;

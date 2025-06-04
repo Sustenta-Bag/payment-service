@@ -33,8 +33,32 @@ setupSwagger(app);
 logger.info('Documentação Swagger disponível em /api-docs');
 
 app.get('/api', (req, res) => {
-  // #swagger.tags = ['API']
-  // #swagger.summary = 'Endpoint raiz da API com links HATEOAS'
+  /*  #swagger.tags = ['API']
+      #swagger.summary = 'Endpoint raiz da API com links HATEOAS'
+      #swagger.description = 'Retorna informações básicas da API e links de navegação HATEOAS para os principais recursos'
+      #swagger.responses[200] = {
+        description: 'Informações da API e links de navegação',
+        schema: {
+          type: 'object',
+          properties: {
+            name: { type: 'string', example: 'API de Pagamentos' },
+            version: { type: 'string', example: '1.0.0' },
+            _links: {
+              type: 'array',
+              items: {
+                type: 'object',
+                properties: {
+                  rel: { type: 'string', example: 'payments' },
+                  href: { type: 'string', example: '/api/payments' },
+                  method: { type: 'string', example: 'GET' },
+                  description: { type: 'string', example: 'Lista todos os pagamentos' }
+                }
+              }
+            }
+          }
+        }
+      }
+  */
   const baseUrl = `${req.protocol}://${req.get('host')}`;
     const links = [
     {
@@ -71,8 +95,20 @@ app.get('/api', (req, res) => {
 });
 
 app.get('/health', (req, res) => {
-  // #swagger.tags = ['Health']
-  // #swagger.summary = 'Verifica a saúde da aplicação'
+  /*  #swagger.tags = ['Health']
+      #swagger.summary = 'Verifica a saúde da aplicação'
+      #swagger.description = 'Endpoint para verificação de saúde da aplicação, retorna status e timestamp'
+      #swagger.responses[200] = {
+        description: 'Aplicação funcionando corretamente',
+        schema: {
+          type: 'object',
+          properties: {
+            status: { type: 'string', example: 'OK' },
+            timestamp: { type: 'string', format: 'date-time', example: '2024-01-15T10:30:00.000Z' }
+          }
+        }
+      }
+  */
   res.status(200).json({ status: 'OK', timestamp: new Date() });
 });
 
