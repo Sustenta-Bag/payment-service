@@ -47,7 +47,7 @@ npm start
 - **Criar pagamentos** com itens, valores e detalhes do pagador
 - **Acompanhar status do pagamento** (pendente → aprovado/rejeitado/cancelado/reembolsado)
 - **Buscar pagamentos** por ID do usuário com filtros e paginação
-- **Interface de simulação de pagamento** para testar fluxos de pagamento
+- **Buscar pagamentos** por Order ID para integração com outros sistemas
 
 ### 📱 Notificações em Tempo Real
 - Notificações automáticas aos usuários sobre mudanças no status do pagamento
@@ -65,15 +65,13 @@ npm start
 
 | Endpoint | Método | Descrição |
 |----------|--------|-----------|
-| `POST /api/payments` | POST | Criar um novo pagamento |
-| `GET /api/payments` | GET | Listar todos os pagamentos (paginado) |
-| `GET /api/payments/{id}` | GET | Obter detalhes do pagamento |
-| `GET /api/payments/user/{userId}` | GET | Obter pagamentos do usuário (com filtros) |
-| `POST /api/payments/{id}/cancel` | POST | Cancelar um pagamento pendente |
-| `POST /api/payments/{id}/refund` | POST | Reembolsar um pagamento aprovado |
-| `POST /api/payments/webhook` | POST | Receber notificações de pagamento |
-| `GET /api/payment-simulation/{id}` | GET | Interface de simulação |
-| `POST /api/payment-simulation/process` | POST | Processar simulação de pagamento |
+| `POST /api/payments` | POST | Cria um novo pagamento |
+| `GET /api/payments` | GET | Lista todos os pagamentos com paginação |
+| `GET /api/payments/{id}` | GET | Obtém informações de um pagamento por ID |
+| `POST /api/payments/{id}/cancel` | POST | Cancela um pagamento |
+| `POST /api/payments/{id}/refund` | POST | Reembolsa um pagamento |
+| `GET /api/payments/order/{orderId}` | GET | Obtém informações de um pagamento por Order ID |
+| `GET /api/payments/user/{userId}` | GET | Obtém todos os pagamentos de um usuário com filtros opcionais |
 
 ## Exemplos de Uso
 
@@ -103,14 +101,15 @@ curl -X POST http://localhost:3000/api/payments \
 curl "http://localhost:3000/api/payments/user/user123?status=approved&page=1&limit=10"
 ```
 
-### Simular Aprovação de Pagamento
+### Obter Pagamento por Order ID
 ```bash
-curl -X POST http://localhost:3000/api/payment-simulation/process \
-  -H "Content-Type: application/json" \
-  -d '{
-    "orderId": "order456",
-    "action": "approve"
-  }'
+curl "http://localhost:3000/api/payments/order/order456"
+```
+
+### Cancelar um Pagamento
+```bash
+curl -X POST http://localhost:3000/api/payments/{id}/cancel \
+  -H "Content-Type: application/json"
 ```
 
 ## Deploy com Docker
