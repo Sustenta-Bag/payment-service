@@ -1,250 +1,159 @@
-# payment-service
+# Serviço de Pagamentos
 
-Microserviço de simulação de pagamentos usando Node.js, Express e RabbitMQ.
+Um microserviço Node.js para simulação de processamento de pagamentos com notificações em tempo real e API REST abrangente.
 
-## Funcionalidades
+## O que este microserviço faz
 
-- Criação de solicitações de pagamento
-- Interface de simulação para aprovação, rejeição ou deixar pagamentos pendentes
-- Processamento de notificações de pagamento
-- Publicação de eventos em filas RabbitMQ
-- Envio de notificações via RabbitMQ após atualizações de pagamento
-- Configuração Docker com MongoDB
-- API RESTful com suporte completo a HATEOAS, caching e versionamento
+Este serviço oferece um sistema completo de simulação de processamento de pagamentos que:
 
-## Requisitos
+- **Cria solicitações de pagamento** com itens do carrinho e informações do pagador
+- **Simula processamento de pagamentos** com estados de aprovação, rejeição ou pendente
+- **Gerencia o ciclo de vida dos pagamentos** incluindo cancelamentos e reembolsos
+- **Envia notificações em tempo real** aos usuários sobre mudanças no status do pagamento
+- **Fornece API REST abrangente** com paginação, filtros e links HATEOAS
+- **Integra com serviços externos** via webhooks e mensageria RabbitMQ
 
+## Início Rápido
+
+### Pré-requisitos
 - Node.js 18+
 - MongoDB
 - RabbitMQ
 
-## Instalação
-
+### Instalação e Configuração
 ```bash
 # Instalar dependências
 npm install
 
-# Configurar variáveis de ambiente
+# Configurar ambiente
 cp .env.example .env
-# Edite o arquivo .env com suas configurações
-```
+# Edite o .env com suas configurações
 
-## Execução
-
-```bash
-# Modo desenvolvimento
+# Executar em desenvolvimento
 npm run dev
 
-# Modo produção
+# Executar em produção
 npm start
 ```
 
+### Pontos de Acesso
+- **API**: `http://localhost:3000/api`
+- **Documentação**: `http://localhost:3000/api-docs` (Swagger)
+- **Health Check**: `http://localhost:3000/health`
 
-## API RESTful
+## Principais Funcionalidades
 
-O serviço implementa uma API RESTful completa seguindo os principais padrões e princípios:
+### 🔧 Gerenciamento de Pagamentos
+- **Criar pagamentos** com itens, valores e detalhes do pagador
+- **Acompanhar status do pagamento** (pendente → aprovado/rejeitado/cancelado/reembolsado)
+- **Buscar pagamentos** por ID do usuário com filtros e paginação
+- **Interface de simulação de pagamento** para testar fluxos de pagamento
 
-### Arquitetura de Recursos
+### 📱 Notificações em Tempo Real
+- Notificações automáticas aos usuários sobre mudanças no status do pagamento
+- Integração com RabbitMQ para mensageria escalável
+- Suporte a tokens FCM para notificações push mobile
 
-Recursos organizados hierarquicamente com URIs semânticas:
-- `/api/payments` - Coleção de pagamentos
-- `/api/payments/{id}` - Recurso de pagamento específico
-- `/api/payments/{id}/cancel` - Ação de cancelamento
-- `/api/payments/{id}/refund` - Ação de reembolso
+### 🌐 API REST
+- Implementação RESTful completa com HATEOAS
+- Documentação Swagger abrangente com exemplos
+- Negociação de conteúdo (JSON, HAL, JSON:API)
+- Cache HTTP com ETags e cabeçalhos Last-Modified
+- Paginação com metadados para todas as coleções
 
-### HATEOAS (Hypermedia as the Engine of Application State)
+## Principais Endpoints da API
 
-Todas as respostas incluem links hipermídia que permitem navegação entre recursos:
+| Endpoint | Método | Descrição |
+|----------|--------|-----------|
+| `POST /api/payments` | POST | Criar um novo pagamento |
+| `GET /api/payments` | GET | Listar todos os pagamentos (paginado) |
+| `GET /api/payments/{id}` | GET | Obter detalhes do pagamento |
+| `GET /api/payments/user/{userId}` | GET | Obter pagamentos do usuário (com filtros) |
+| `POST /api/payments/{id}/cancel` | POST | Cancelar um pagamento pendente |
+| `POST /api/payments/{id}/refund` | POST | Reembolsar um pagamento aprovado |
+| `POST /api/payments/webhook` | POST | Receber notificações de pagamento |
+| `GET /api/payment-simulation/{id}` | GET | Interface de simulação |
+| `POST /api/payment-simulation/process` | POST | Processar simulação de pagamento |
 
-```json
-{
-  "data": { 
-    "paymentId": "123",
-    "amount": 99.90,
-    "status": "approved"
-  },
-  "_links": [
-    {
-      "rel": "self",
-      "href": "/api/payments/123",
-      "method": "GET"
-    },
-    {
-      "rel": "refund",
-      "href": "/api/payments/123/refund",
-      "method": "POST"
+## Exemplos de Uso
+
+### Criar um Pagamento
+```bash
+curl -X POST http://localhost:3000/api/payments \
+  -H "Content-Type: application/json" \
+  -d '{
+    "userId": "user123",
+    "orderId": "order456",
+    "items": [
+      {
+        "title": "Produto A",
+        "quantity": 2,
+        "unitPrice": 50.00
+      }
+    ],
+    "payer": {
+      "email": "user@example.com",
+      "name": "João Silva"
     }
-  ]
-}
+  }'
 ```
 
-### Negociação de Conteúdo
+### Obter Pagamentos do Usuário com Filtros
+```bash
+curl "http://localhost:3000/api/payments/user/user123?status=approved&page=1&limit=10"
+```
 
-A API suporta múltiplos formatos através de negociação de conteúdo:
+### Simular Aprovação de Pagamento
+```bash
+curl -X POST http://localhost:3000/api/payment-simulation/process \
+  -H "Content-Type: application/json" \
+  -d '{
+    "orderId": "order456",
+    "action": "approve"
+  }'
+```
+
+## Deploy com Docker
 
 ```bash
-# JSON padrão
-curl -X GET http://localhost:3000/api/payments/123 \
-  -H "Accept: application/json"
-
-# Formato HAL
-curl -X GET http://localhost:3000/api/payments/123 \
-  -H "Accept: application/hal+json"
-
-# Formato JSON:API
-curl -X GET http://localhost:3000/api/payments/123 \
-  -H "Accept: application/vnd.api+json"
-```
-
-### Cache HTTP
-
-Implementa mecanismos de cache HTTP para otimizar requisições:
-- ETags para validação de conteúdo
-- Cabeçalhos Last-Modified para validação temporal
-- Cache-Control para controle de cache do cliente
-
-### Paginação de Coleções
-
-Coleções de recursos implementam paginação com metadata e links de navegação:
-
-```json
-{
-  "data": {
-    "payments": [...],
-    "_meta": {
-      "totalItems": 50,
-      "itemsPerPage": 10,
-      "currentPage": 2,
-      "totalPages": 5
-    }
-  },
-  "_links": [
-    {"rel": "first", "href": "/api/payments?page=1&limit=10"},
-    {"rel": "prev", "href": "/api/payments?page=1&limit=10"},
-    {"rel": "next", "href": "/api/payments?page=3&limit=10"},
-    {"rel": "last", "href": "/api/payments?page=5&limit=10"}
-  ]
-}
-```
-
-### Versionamento de API
-
-Suporte a versionamento por:
-1. Cabeçalhos HTTP: `Accept: application/json; version=1.0.0`
-2. Parâmetro de query: `?version=1.0.0`
-
-### Perfis de Recursos (RFC 6906)
-
-Documentação semântica dos recursos através de perfis:
-- `/profiles/payment` - Documentação sobre o recurso de pagamento
-- `/profiles/payment/schema.json` - Schema JSON para validação
-
-Para informações detalhadas, consulte nossa [Documentação RESTful](RESTFUL-V2.md).
-
-## Docker
-
-```bash
-# Construir imagem
-docker build -t payment-service .
-
-# Executar com docker-compose
+# Construir e executar com Docker Compose
 docker-compose up -d
+
+# Ou construir manualmente
+docker build -t payment-service .
+docker run -p 3000:3000 payment-service
+```
+
+## Configuração do Ambiente
+
+Principais variáveis de ambiente:
+```env
+PORT=3000
+MONGODB_URI=mongodb://localhost:27017/payment-service
+RABBITMQ_URL=amqp://guest:guest@localhost:5672/
+MONOLITH_API_URL=http://localhost:8080
+NODE_ENV=development
+```
+
+## Testes
+
+```bash
+# Executar todos os testes
+npm test
+
+# Executar com cobertura
+npm run test:coverage
+
+# Modo watch
+npm run test:watch
 ```
 
 ## Documentação
 
-A documentação da API está disponível em `/api-docs` quando o serviço estiver em execução.
+- **Documentação da API Swagger**: Disponível em `/api-docs` quando executando
+- **Detalhes da Implementação REST**: Veja [RESTFUL-V2.md](RESTFUL-V2.md)
+- **Exemplos abrangentes** incluídos na documentação Swagger
 
-## Sistema de Notificações
+---
 
-O serviço de pagamento agora envia notificações aos usuários quando há alterações no status de pagamento:
-
-### Fluxo de Notificações
-
-1. **Simulação de Pagamento**: Quando um pagamento é processado através da rota `/api/payment-simulation/process`, o sistema:
-   - Atualiza o status do pagamento no banco de dados
-   - Envia uma notificação para o usuário sobre o status do pagamento
-   - Publica um evento na exchange de RabbitMQ
-
-2. **Webhook de Pagamento**: Quando um pagamento é atualizado via webhook, o sistema:
-   - Atualiza o status do pagamento no banco de dados
-   - Envia uma notificação para o usuário sobre o status do pagamento
-   - Publica um evento na exchange de RabbitMQ
-
-### Formato das Mensagens de Notificação
-
-As notificações são enviadas para a exchange `process_notification_exchange` com a routing key `notification` no seguinte formato:
-
-```json
-{
-  "token": "[token-fcm-do-usuario]",
-  "notification": {
-    "title": "Pagamento aprovado",
-    "body": "Seu pagamento no valor de R$99.90 foi aprovado com sucesso!"
-  },
-  "data": {
-    "paymentId": "payment123",
-    "orderId": "order123",
-    "amount": 99.90,
-    "status": "approved"
-  },
-  "timestamp": "2023-05-18T14:30:00.000Z"
-}
-```
-
-### Testando o Sistema de Notificações
-
-Para testar o envio de notificações, você pode simular um pagamento usando:
-
-```bash
-curl -X POST http://localhost:3001/api/payment-simulation/process \
-  -H "Content-Type: application/json" \
-  -d '{"orderId": "seu-order-id", "action": "approve"}'
-```
-
-Ou rejeitar um pagamento:
-
-```bash
-curl -X POST http://localhost:3001/api/payment-simulation/process \
-  -H "Content-Type: application/json" \
-  -d '{"orderId": "seu-order-id", "action": "reject"}'
-```
-
-### Integração com o Sistema de Notificações via RabbitMQ
-
-O serviço de pagamento agora se integra com o serviço de notificações através do RabbitMQ:
-
-1. Quando um pagamento é aprovado ou rejeitado, uma mensagem é enviada para a exchange de notificações
-2. O serviço de notificações consome estas mensagens e trata o envio das notificações aos usuários
-
-#### Configuração Necessária
-
-Certifique-se de configurar as variáveis de ambiente relacionadas ao RabbitMQ:
-
-```bash
-# Configuração RabbitMQ
-RABBITMQ_URL=amqp://guest:guest@localhost:5672/
-```
-
-O serviço enviará mensagens com o seguinte formato para a exchange `notifications_exchange` com a routing key `notification.send`:
-
-```json
-{
-  "userId": "user123",
-  "notification": {
-    "title": "Pagamento aprovado",
-    "body": "Seu pagamento no valor de R$99.90 foi aprovado com sucesso!"
-  },
-  "data": {
-    "paymentId": "payment123",
-    "orderId": "order123",
-    "amount": 99.90,
-    "status": "approved"
-  },
-  "timestamp": "2023-05-18T14:30:00.000Z"
-}
-```
-
-## Licença
-
-Este projeto está licenciado sob a licença ISC.
+**Construído com**: Node.js, Express, MongoDB, RabbitMQ, Mongoose, Swagger
