@@ -1,8 +1,8 @@
-const express = require('express');
-const paymentController = require('../controllers/paymentController');
-const cacheMiddleware = require('../middlewares/cacheMiddleware');
-const methodValidation = require('../middlewares/methodValidationMiddleware');
-const Payment = require('../models/payment');
+const express = require("express");
+const paymentController = require("../controllers/paymentController");
+const cacheMiddleware = require("../middlewares/cacheMiddleware");
+const methodValidation = require("../middlewares/methodValidationMiddleware");
+const Payment = require("../models/payment");
 const router = express.Router();
 
 // Middleware para validação de preflight CORS
@@ -74,9 +74,13 @@ router.use(methodValidation.handlePreflight());
  *       500:
  *         description: Erro interno do servidor
  */
-router.post('/', 
-  methodValidation.methodValidator(['POST']),
+router.post(
+  "/",
+  methodValidation.methodValidator(["POST"]),
   paymentController.createPayment
+  // #swagger.tags = ['Pagamentos']
+  // #swagger.summary = 'Cria um novo pagamento'
+  // #swagger.description = 'Cria um novo pagamento no sistema'
 );
 /**
  * @swagger
@@ -99,8 +103,9 @@ router.post('/',
  *       500:
  *         description: Erro interno do servidor
  */
-router.get('/:id', 
-  methodValidation.methodValidator(['GET', 'HEAD', 'OPTIONS']),
+router.get(
+  "/:id",
+  methodValidation.methodValidator(["GET", "HEAD", "OPTIONS"]),
   cacheMiddleware.setCacheHeaders(60),
   cacheMiddleware.setEtagHeader(),
   cacheMiddleware.setLastModifiedHeader(async (req) => {
@@ -108,6 +113,8 @@ router.get('/:id',
     return payment ? payment.updatedAt || payment.createdAt : null;
   }),
   paymentController.getPayment
+  // #swagger.tags = ['Pagamentos']
+  // #swagger.summary = 'Obtém informações de um pagamento por ID'
 );
 
 /**
@@ -135,11 +142,14 @@ router.get('/:id',
  *       500:
  *         description: Erro interno do servidor
  */
-router.get('/', 
-  methodValidation.methodValidator(['GET', 'HEAD', 'OPTIONS']),
-  cacheMiddleware.setCacheHeaders(30), 
-  cacheMiddleware.setEtagHeader(), 
+router.get(
+  "/",
+  methodValidation.methodValidator(["GET", "HEAD", "OPTIONS"]),
+  cacheMiddleware.setCacheHeaders(30),
+  cacheMiddleware.setEtagHeader(),
   paymentController.listPayments
+  // #swagger.tags = ['Pagamentos']
+  // #swagger.summary = 'Lista todos os pagamentos com paginação'
 );
 
 /**
@@ -165,9 +175,12 @@ router.get('/',
  *       500:
  *         description: Erro interno do servidor
  */
-router.post('/:id/cancel', 
-  methodValidation.methodValidator(['POST']),
+router.post(
+  "/:id/cancel",
+  methodValidation.methodValidator(["POST"]),
   paymentController.cancelPayment
+  // #swagger.tags = ['Pagamentos']
+  // #swagger.summary = 'Cancela um pagamento'
 );
 
 /**
@@ -193,9 +206,12 @@ router.post('/:id/cancel',
  *       500:
  *         description: Erro interno do servidor
  */
-router.post('/:id/refund', 
-  methodValidation.methodValidator(['POST']),
+router.post(
+  "/:id/refund",
+  methodValidation.methodValidator(["POST"]),
   paymentController.refundPayment
+  // #swagger.tags = ['Pagamentos']
+  // #swagger.summary = 'Reembolsa um pagamento'
 );
 
 /**
@@ -203,7 +219,7 @@ router.post('/:id/refund',
  * /api/payments/webhook:
  *   post:
  *     summary: Recebe notificações de pagamento do Mercado Pago
- *     tags: [Pagamentos]
+ *     tags: [Webhooks]
  *     requestBody:
  *       required: true
  *       content:
@@ -212,10 +228,15 @@ router.post('/:id/refund',
  *             type: object
  *             description: Objeto de notificação do Mercado Pago
  *     responses:
- *       200:
+ *       202:
  *         description: Notificação recebida com sucesso
  */
-router.post('/webhook', paymentController.webhook);
+router.post(
+  "/webhook",
+  paymentController.webhook
+  // #swagger.tags = ['Webhooks']
+  // #swagger.summary = 'Recebe notificações de pagamento do Mercado Pago'
+);
 
 /**
  * @swagger
@@ -238,8 +259,9 @@ router.post('/webhook', paymentController.webhook);
  *       500:
  *         description: Erro interno do servidor
  */
-router.get('/order/:orderId', 
-  methodValidation.methodValidator(['GET', 'HEAD', 'OPTIONS']),
+router.get(
+  "/order/:orderId",
+  methodValidation.methodValidator(["GET", "HEAD", "OPTIONS"]),
   cacheMiddleware.setCacheHeaders(60),
   cacheMiddleware.setEtagHeader(),
   cacheMiddleware.setLastModifiedHeader(async (req) => {
@@ -247,6 +269,8 @@ router.get('/order/:orderId',
     return payment ? payment.updatedAt || payment.createdAt : null;
   }),
   paymentController.getPaymentByOrderId
+  // #swagger.tags = ['Pagamentos']
+  // #swagger.summary = 'Obtém informações de um pagamento por Order ID'
 );
 
 module.exports = router;
