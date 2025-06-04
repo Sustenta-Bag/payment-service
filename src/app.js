@@ -5,9 +5,6 @@ const morgan = require('morgan');
 const mongoose = require('mongoose');
 const config = require('./config/config');
 const paymentRoutes = require('./routes/paymentRoutes');
-const simulationRoutes = require('./routes/simulationRoutes');
-const testRoutes = require('./routes/testRoutes');
-const profileRoutes = require('./routes/profileRoutes');
 const setupSwagger = require('./config/swagger');
 const logger = require('./utils/logger');
 const versionMiddleware = require('./middlewares/versionMiddleware');
@@ -31,26 +28,15 @@ app.use('/api', contentNegotiationMiddleware.contentNegotiation());
 app.use('/api', paginationMiddleware);
 
 app.use('/api/payments', paymentRoutes);
-app.use('/api/payment-simulation', simulationRoutes);
-app.use('/profiles', profileRoutes);
-
-if (config.env === 'development' || config.env === 'test') {
-  app.use('/api/test', testRoutes);
-  logger.info('Rotas de teste habilitadas');
-}
 
 setupSwagger(app);
 logger.info('Documentação Swagger disponível em /api-docs');
 
-if (config.env === 'development') {
-  app.use('/api/test', testRoutes);
-  logger.info('Rotas de teste habilitadas');
-}
-
 app.get('/api', (req, res) => {
+  // #swagger.tags = ['API']
+  // #swagger.summary = 'Endpoint raiz da API com links HATEOAS'
   const baseUrl = `${req.protocol}://${req.get('host')}`;
-  
-  const links = [
+    const links = [
     {
       rel: 'payments',
       href: `${baseUrl}/api/payments`,
@@ -62,12 +48,6 @@ app.get('/api', (req, res) => {
       href: `${baseUrl}/api/payments`,
       method: 'POST',
       description: 'Cria um novo pagamento'
-    },
-    {
-      rel: 'payment-simulation',
-      href: `${baseUrl}/api/payment-simulation`,
-      method: 'GET',
-      description: 'Acesso à interface de simulação de pagamentos'
     },
     {
       rel: 'health',
@@ -91,6 +71,8 @@ app.get('/api', (req, res) => {
 });
 
 app.get('/health', (req, res) => {
+  // #swagger.tags = ['Health']
+  // #swagger.summary = 'Verifica a saúde da aplicação'
   res.status(200).json({ status: 'OK', timestamp: new Date() });
 });
 
@@ -184,74 +166,6 @@ app.get('/', (req, res) => {
               <li><code>POST /api/payments/webhook</code> - Webhook para notificações</li>
             </ul>
           </div>
-
-          <div class="card">
-            <h3>Simulação de Pagamento</h3>
-            <p>Interface para simular aprovação, rejeição ou pendência de pagamentos.</p>
-            <p><strong>Endpoints:</strong></p>
-            <ul>
-              <li><code>GET /api/payment-simulation/:id</code> - Página de simulação</li>
-              <li><code>POST /api/payment-simulation/process</code> - Processar simulação</li>
-              <li><code>GET /api/payment-simulation/status/:orderId</code> - Status de pagamento</li>
-            </ul>
-          </div>
-
-          <div class="card">
-            <h3>Perfis</h3>
-            <p>Gerencie os perfis dos usuários que realizam os pagamentos.</p>
-            <p><strong>Endpoints:</strong></p>
-            <ul>
-              <li><code>GET /api/profiles</code> - Listar perfis</li>
-              <li><code>POST /api/profiles</code> - Criar novo perfil</li>
-              <li><code>GET /api/profiles/:id</code> - Obter detalhes de um perfil</li>
-              <li><code>PUT /api/profiles/:id</code> - Atualizar perfil</li>
-              <li><code>DELETE /api/profiles/:id</code> - Remover perfil</li>
-            </ul>
-          </div>
-
-          <div class="card">
-            <h3>Ferramentas de Teste</h3>
-            <p>Endpoints disponíveis apenas no ambiente de desenvolvimento.</p>
-            <p><strong>Endpoints:</strong></p>
-            <ul>
-              <li><code>POST /api/test/simulate-payment</code> - Simular pagamento</li>
-              <li><code>GET /api/test/payments</code> - Listar pagamentos</li>
-            </ul>
-          </div>
-        </div>
-      </section>
-
-      <section>
-        <h2>Exemplo de Uso</h2>
-        <pre>
-fetch('/api/payments', {
-  method: 'POST',
-  headers: {
-    'Content-Type': 'application/json'
-  },
-  body: JSON.stringify({
-    userId: 'user123',
-    items: [
-      {
-        title: 'Produto Teste',
-        description: 'Descrição do produto',
-        quantity: 1,
-        unitPrice: 100.00
-      }
-    ],
-    payer: {
-      email: 'cliente@exemplo.com',
-      name: 'Cliente Teste',
-      identification: {
-        type: 'CPF',
-        number: '12345678909'
-      }
-    }
-  })
-})
-.then(response => response.json())
-.then(data => console.log(data));
-        </pre>
       </section>
     </main>
 

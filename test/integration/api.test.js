@@ -27,9 +27,9 @@ describe('API de Pagamentos - Testes de Integração', () => {
     await Payment.deleteMany({});
     rabbitMQService.publish.mockResolvedValue(true);
   });
-
   const mockPaymentData = {
     userId: 'user123',
+    orderId: 'order123',
     items: [
       {
         title: 'Produto 1',
@@ -73,7 +73,7 @@ describe('API de Pagamentos - Testes de Integração', () => {
         .expect(400);
 
       expect(response.body.success).toBe(false);
-      expect(response.body.message).toBe('Dados incompletos para criação do pagamento');
+      expect(response.body.message).toBe('Dados incompletos para criação do pagamento. userId, orderId, items e payer são obrigatórios');
     });
   });
 
