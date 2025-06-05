@@ -24,6 +24,10 @@ const doc = {
       description: "Endpoints para gerenciamento de pagamentos",
     },
     {
+      name: "Simulações",
+      description: "Endpoints para simulação de pagamentos"
+    },
+    {
       name: "Webhooks",
       description: "Endpoints para receber notificações de pagamentos",
     },

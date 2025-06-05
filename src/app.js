@@ -5,6 +5,7 @@ const morgan = require('morgan');
 const mongoose = require('mongoose');
 const config = require('./config/config');
 const paymentRoutes = require('./routes/paymentRoutes');
+const simulationRoutes = require('./routes/simulationRoutes');
 const setupSwagger = require('./config/swagger');
 const logger = require('./utils/logger');
 const versionMiddleware = require('./middlewares/versionMiddleware');
@@ -28,6 +29,7 @@ app.use('/api', contentNegotiationMiddleware.contentNegotiation());
 app.use('/api', paginationMiddleware);
 
 app.use('/api/payments', paymentRoutes);
+app.use('/api/payment-simulation', simulationRoutes);
 
 setupSwagger(app);
 logger.info('Documentação Swagger disponível em /api-docs');
