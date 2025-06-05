@@ -1,5 +1,5 @@
-const { v4: uuidv4 } = require('uuid');
-const logger = require('../utils/logger');
+const { v4: uuidv4 } = require("uuid");
+const logger = require("../utils/logger");
 
 class PaymentSimulationService {
   /**
@@ -11,14 +11,13 @@ class PaymentSimulationService {
     try {
       const simulatedId = uuidv4();
       const totalAmount = paymentData.items.reduce((total, item) => {
-        return total + (item.unitPrice * item.quantity);
+        return total + item.unitPrice * item.quantity;
       }, 0);
-      
-      // Cria uma URL simulada para pagamento
+
       const paymentUrl = `/api/payment-simulation/${simulatedId}?orderId=${paymentData.orderId}&amount=${totalAmount}`;
-      
+
       logger.info(`Simulação de pagamento criada: ${paymentData.orderId}`);
-      
+
       return {
         id: simulatedId,
         init_point: paymentUrl,
@@ -26,7 +25,7 @@ class PaymentSimulationService {
         total_amount: totalAmount,
         items: paymentData.items,
         payer: paymentData.payer,
-        created_at: new Date().toISOString()
+        created_at: new Date().toISOString(),
       };
     } catch (error) {
       logger.error(`Erro ao criar simulação de pagamento: ${error.message}`);
@@ -41,19 +40,19 @@ class PaymentSimulationService {
    */
   async getPaymentStatus(paymentId) {
     try {
-      // Em um cenário real, aqui buscaria do banco de dados
-      // Estamos simulando o retorno de um status
       return {
         id: paymentId,
         status: this.getRandomStatus(),
-        payment_method_id: 'credit_card',
-        status_detail: 'accredited',
+        payment_method_id: "credit_card",
+        status_detail: "accredited",
         date_approved: new Date().toISOString(),
-        date_created: new Date().toISOString()
+        date_created: new Date().toISOString(),
       };
     } catch (error) {
       logger.error(`Erro ao verificar status do pagamento: ${error.message}`);
-      throw new Error(`Erro ao verificar status do pagamento: ${error.message}`);
+      throw new Error(
+        `Erro ao verificar status do pagamento: ${error.message}`
+      );
     }
   }
 
@@ -62,7 +61,7 @@ class PaymentSimulationService {
    * @returns {String} Status simulado
    */
   getRandomStatus() {
-    const statuses = ['approved', 'pending', 'rejected'];
+    const statuses = ["approved", "pending", "rejected"];
     const randomIndex = Math.floor(Math.random() * statuses.length);
     return statuses[randomIndex];
   }
@@ -74,10 +73,10 @@ class PaymentSimulationService {
    */
   async processPaymentNotification(notification) {
     try {
-      if (notification.type === 'payment') {
+      if (notification.type === "payment") {
         const paymentId = notification.data.id;
         const paymentInfo = await this.getPaymentStatus(paymentId);
-        
+
         return {
           paymentId: paymentInfo.id,
           status: paymentInfo.status,
@@ -85,8 +84,8 @@ class PaymentSimulationService {
           metadata: {
             orderId: notification.data.orderId,
             externalReference: notification.data.orderId,
-            userId: notification.data.userId
-          }
+            userId: notification.data.userId,
+          },
         };
       }
       return null;
@@ -106,11 +105,11 @@ class PaymentSimulationService {
       logger.info(`Aprovando pagamento para pedido: ${orderId}`);
       return {
         paymentId: uuidv4(),
-        status: 'approved',
-        paymentMethod: 'credit_card',
+        status: "approved",
+        paymentMethod: "credit_card",
         metadata: {
-          orderId: orderId
-        }
+          orderId: orderId,
+        },
       };
     } catch (error) {
       logger.error(`Erro ao aprovar pagamento: ${error.message}`);
@@ -128,11 +127,11 @@ class PaymentSimulationService {
       logger.info(`Rejeitando pagamento para pedido: ${orderId}`);
       return {
         paymentId: uuidv4(),
-        status: 'rejected',
-        paymentMethod: 'credit_card',
+        status: "rejected",
+        paymentMethod: "credit_card",
         metadata: {
-          orderId: orderId
-        }
+          orderId: orderId,
+        },
       };
     } catch (error) {
       logger.error(`Erro ao rejeitar pagamento: ${error.message}`);
@@ -148,20 +147,19 @@ class PaymentSimulationService {
   async cancelPayment(paymentId) {
     try {
       logger.info(`Simulando cancelamento de pagamento: ${paymentId}`);
-      
-      // Em um cenário real, chamaria a API do gateway de pagamento
+
       return {
         id: paymentId,
-        status: 'cancelled',
+        status: "cancelled",
         cancelled_at: new Date().toISOString(),
-        message: 'Pagamento cancelado com sucesso'
+        message: "Pagamento cancelado com sucesso",
       };
     } catch (error) {
       logger.error(`Erro ao cancelar pagamento: ${error.message}`);
       throw new Error(`Erro ao cancelar pagamento: ${error.message}`);
     }
   }
-  
+
   /**
    * Simula o reembolso de um pagamento
    * @param {String} paymentId ID do pagamento
@@ -170,13 +168,12 @@ class PaymentSimulationService {
   async refundPayment(paymentId) {
     try {
       logger.info(`Simulando reembolso de pagamento: ${paymentId}`);
-      
-      // Em um cenário real, chamaria a API do gateway de pagamento
+
       return {
         id: paymentId,
-        status: 'refunded',
+        status: "refunded",
         refunded_at: new Date().toISOString(),
-        message: 'Pagamento reembolsado com sucesso'
+        message: "Pagamento reembolsado com sucesso",
       };
     } catch (error) {
       logger.error(`Erro ao reembolsar pagamento: ${error.message}`);

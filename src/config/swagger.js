@@ -1,28 +1,40 @@
+const swaggerJSDoc = require("swagger-jsdoc");
 const swaggerUi = require("swagger-ui-express");
-let swaggerFile;
+const path = require("path");
 
-try {
-  swaggerFile = require("./swagger-output.json");
-} catch (error) {
-  console.warn(
-    "Arquivo swagger-output.json não encontrado. Utilizando configuração padrão."
-  );
-  // Configuração de fallback caso o arquivo não exista
-  swaggerFile = {
+const options = {
+  definition: {
     openapi: "3.0.0",
     info: {
       title: "API de Pagamentos",
       version: "1.0.0",
-      description: "API RESTful para processamento de pagamentos",
+      description: "API RESTful para processamento de pagamentos com suporte a HATEOAS e JSON:API",
+      contact: {
+        name: "Suporte",
+        email: "suporte@exemplo.com",
+      },
     },
-  };
-}
+    servers: [
+      {
+        url: "http://localhost:3001",
+        description: "Servidor de desenvolvimento",
+      },
+    ],
+  },
+  apis: [
+    path.join(__dirname, "../routes/*.js"),
+    path.join(__dirname, "../controllers/*.js"),
+    path.join(__dirname, "../app.js"),
+  ],
+};
+
+const swaggerSpec = swaggerJSDoc(options);
 
 module.exports = (app) => {
   app.use(
     "/api-docs",
     swaggerUi.serve,
-    swaggerUi.setup(swaggerFile, {
+    swaggerUi.setup(swaggerSpec, {
       explorer: true,
       swaggerOptions: {
         docExpansion: "none",
