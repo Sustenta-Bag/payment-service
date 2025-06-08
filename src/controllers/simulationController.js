@@ -141,6 +141,22 @@ exports.processPaymentSimulation = async (req, res) => {
       } catch (webhookError) {
         logger.error(`❌ ERRO ao notificar monólito: ${webhookError.message}`);
       }
+    } else if (paymentResult.status === "rejected") {
+      logger.info(
+        `📤 INICIANDO webhook para monólito: orderId=${payment.orderId}, status=rejected`
+      );
+      try {
+        await monolithClient.notifyPaymentStatusUpdate(
+          payment.orderId,
+          "rejected",
+          payment._id
+        );
+        logger.info(
+          `✅ Monólito notificado sobre rejeição do pagamento ${payment.orderId}`
+        );
+      } catch (webhookError) {
+        logger.error(`❌ ERRO ao notificar monólito: ${webhookError.message}`);
+      }
     } else {
       logger.info(
         `❌ Webhook NÃO será enviado. Status: ${paymentResult.status} (esperado: approved)`
