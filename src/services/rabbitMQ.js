@@ -1,6 +1,6 @@
-const amqp = require('amqplib');
-const config = require('../config/config');
-const logger = require('../utils/logger');
+const amqp = require("amqplib");
+const config = require("../config/config");
+const logger = require("../utils/logger");
 
 class RabbitMQService {
   constructor() {
@@ -14,48 +14,46 @@ class RabbitMQService {
   async connect() {
     try {
       this.connection = await amqp.connect(config.rabbitmq.url);
-      this.channel = await this.connection.createChannel();      await this.channel.assertExchange(
-        config.rabbitmq.exchanges.payments, 
-        'topic', 
+      this.channel = await this.connection.createChannel();
+      await this.channel.assertExchange(
+        config.rabbitmq.exchanges.payments,
+        "topic",
         { durable: true }
       );
-      
+
       await this.channel.assertExchange(
         config.rabbitmq.exchanges.notifications,
-        'direct',
+        "direct",
         { durable: true }
       );
-      
-      await this.channel.assertQueue(
-        config.rabbitmq.queues.paymentRequests, 
-        { durable: true }
-      );
-      await this.channel.assertQueue(
-        config.rabbitmq.queues.paymentResults, 
-        { durable: true }
-      );
-      await this.channel.assertQueue(
-        config.rabbitmq.queues.notifications, 
-        { durable: true }
-      );
-      
+
+      await this.channel.assertQueue(config.rabbitmq.queues.paymentRequests, {
+        durable: true,
+      });
+      await this.channel.assertQueue(config.rabbitmq.queues.paymentResults, {
+        durable: true,
+      });
+      await this.channel.assertQueue(config.rabbitmq.queues.notifications, {
+        durable: true,
+      });
+
       await this.channel.bindQueue(
         config.rabbitmq.queues.paymentRequests,
         config.rabbitmq.exchanges.payments,
-        'payment.request'
-      );      
+        "payment.request"
+      );
       await this.channel.bindQueue(
         config.rabbitmq.queues.paymentResults,
         config.rabbitmq.exchanges.payments,
-        'payment.result'
+        "payment.result"
       );
       await this.channel.bindQueue(
         config.rabbitmq.queues.notifications,
         config.rabbitmq.exchanges.notifications,
-        'notification'
+        "notification"
       );
-      
-      logger.info('Conectado ao RabbitMQ');
+
+      logger.info("Conectado ao RabbitMQ");
     } catch (error) {
       logger.error(`Erro ao conectar ao RabbitMQ: ${error.message}`);
       throw error;
@@ -74,7 +72,7 @@ class RabbitMQService {
       if (!this.channel) {
         await this.connect();
       }
-      
+
       return this.channel.publish(
         exchange,
         routingKey,
@@ -98,7 +96,7 @@ class RabbitMQService {
       if (!this.channel) {
         await this.connect();
       }
-      
+
       await this.channel.consume(queue, async (msg) => {
         if (msg !== null) {
           try {
@@ -111,7 +109,7 @@ class RabbitMQService {
           }
         }
       });
-      
+
       logger.info(`Consumindo mensagens da fila: ${queue}`);
     } catch (error) {
       logger.error(`Erro ao consumir mensagens: ${error.message}`);
@@ -131,7 +129,7 @@ class RabbitMQService {
       if (this.connection) {
         await this.connection.close();
       }
-      logger.info('Conexão com RabbitMQ fechada');
+      logger.info("Conexão com RabbitMQ fechada");
     } catch (error) {
       logger.error(`Erro ao fechar conexão: ${error.message}`);
     }

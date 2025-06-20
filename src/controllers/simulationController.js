@@ -1,7 +1,6 @@
 const Payment = require("../models/payment");
 const paymentSimulationService = require("../services/paymentSimulation");
 const rabbitMQService = require("../services/rabbitMQ");
-const notificationService = require("../services/notificationService");
 const monolithClient = require("../services/monolithClient");
 const config = require("../config/config");
 const logger = require("../utils/logger");
@@ -76,6 +75,9 @@ exports.processPaymentSimulation = async (req, res) => {
     }
 
     let paymentResult;
+    console.log(
+      `🔍 Processando simulação de pagamento para orderId: ${orderId}, ação: ${action}`
+    );
 
     switch (action) {
       case "approve":
@@ -98,29 +100,14 @@ exports.processPaymentSimulation = async (req, res) => {
           message: "Ação de pagamento inválida",
         });
     }
+    payment.status = paymentResult.status;
     payment.paymentMethod = paymentResult.paymentMethod;
     payment.updatedAt = new Date();
     await payment.save();
-
     console.log("🔄 Pagamento atualizado:", payment);
     logger.info(
       `🔄 Pagamento atualizado no banco: ${payment.orderId} -> ${payment.status}`
     );
-
-    if (
-      paymentResult.status === "approved" ||
-      paymentResult.status === "rejected"
-    ) {
-      logger.info(`📱 Enviando notificação para usuário ${payment.userId}...`);
-      await notificationService.sendPaymentNotification(
-        payment.userId,
-        paymentResult.status,
-        payment
-      );
-      logger.info(
-        `✅ Notificação de pagamento ${paymentResult.status} enviada para o usuário ${payment.userId}`
-      );
-    }
 
     logger.info(
       `🔍 Verificando se deve notificar monólito. Status: ${paymentResult.status}`
@@ -162,7 +149,6 @@ exports.processPaymentSimulation = async (req, res) => {
         `❌ Webhook NÃO será enviado. Status: ${paymentResult.status} (esperado: approved)`
       );
     }
-
     await rabbitMQService.publish(
       config.rabbitmq.exchanges.payments,
       "payment.result",
@@ -172,7 +158,19 @@ exports.processPaymentSimulation = async (req, res) => {
         orderId: payment.orderId,
         userId: payment.userId,
         status: payment.status,
+        previousStatus: "pending",
         amount: payment.amount,
+        paymentMethod: payment.paymentMethod,
+        items: payment.items,
+        createdAt: payment.createdAt,
+        updatedAt: payment.updatedAt,
+        shouldNotifyUser:
+          payment.status === "approved" || payment.status === "rejected",
+        notificationData: {
+          userEmail: payment.payer?.email,
+          userName: payment.payer?.name,
+          paymentUrl: payment.paymentUrl,
+        },
       }
     );
 

@@ -2,7 +2,6 @@ const { v4: uuidv4 } = require("uuid");
 const Payment = require("../models/payment");
 const paymentSimulationService = require("../services/paymentSimulation");
 const rabbitMQService = require("../services/rabbitMQ");
-const notificationService = require("../services/notificationService");
 const config = require("../config/config");
 const logger = require("../utils/logger");
 const hateoasUtils = require("../utils/hateoasUtils");
@@ -224,23 +223,12 @@ exports.webhook = async (req, res) => {
       );
       return;
     }
-
+    const previousStatus = payment.status;
     payment.status = paymentInfo.status;
     payment.paymentId = paymentInfo.paymentId;
     payment.paymentMethod = paymentInfo.paymentMethod;
     payment.updatedAt = new Date();
     await payment.save();
-
-    if (payment.status === "approved" || payment.status === "rejected") {
-      await notificationService.sendPaymentNotification(
-        payment.userId,
-        payment.status,
-        payment
-      );
-      logger.info(
-        `Notificação de pagamento ${payment.status} enviada para usuário ${payment.userId}`
-      );
-    }
 
     await rabbitMQService.publish(
       config.rabbitmq.exchanges.payments,
@@ -251,7 +239,19 @@ exports.webhook = async (req, res) => {
         orderId: payment.orderId,
         userId: payment.userId,
         status: payment.status,
+        previousStatus: previousStatus,
         amount: payment.amount,
+        paymentMethod: payment.paymentMethod,
+        items: payment.items,
+        createdAt: payment.createdAt,
+        updatedAt: payment.updatedAt,
+        shouldNotifyUser:
+          payment.status === "approved" || payment.status === "rejected",
+        notificationData: {
+          userEmail: payment.payer?.email,
+          userName: payment.payer?.name,
+          paymentUrl: payment.paymentUrl,
+        },
       }
     );
 
