@@ -260,11 +260,7 @@
     },
     "/api/payments/": {
       "post": {
-        "tags": [
-          "Pagamentos"
-        ],
-        "summary": "Cria um novo pagamento",
-        "description": "Cria um novo pagamento no sistema com items e informações do pagador",
+        "description": "",
         "parameters": [
           {
             "name": "page",
@@ -279,253 +275,68 @@
           {
             "name": "body",
             "in": "body",
-            "description": "Dados do pagamento",
-            "required": true,
             "schema": {
-              "$ref": "#/definitions/CreatePaymentRequest"
+              "type": "object",
+              "properties": {
+                "userId": {
+                  "example": "any"
+                },
+                "orderId": {
+                  "example": "any"
+                },
+                "items": {
+                  "example": "any"
+                },
+                "callbackUrl": {
+                  "example": "any"
+                },
+                "payer": {
+                  "example": "any"
+                },
+                "authToken": {
+                  "example": "any"
+                }
+              }
             }
           }
         ],
         "responses": {
           "201": {
-            "description": "Pagamento criado com sucesso",
-            "schema": {
-              "$ref": "#/definitions/PaymentResponse"
-            }
+            "description": "Created"
           },
           "400": {
-            "description": "Dados inválidos ou incompletos",
-            "schema": {
-              "$ref": "#/definitions/ErrorResponse"
-            }
+            "description": "Bad Request"
           },
           "405": {
             "description": "Method Not Allowed"
           },
           "500": {
-            "description": "Erro interno do servidor",
-            "schema": {
-              "$ref": "#/definitions/ErrorResponse"
-            }
+            "description": "Internal Server Error"
           }
         }
       },
       "get": {
-        "tags": [
-          "Pagamentos"
-        ],
-        "summary": "Lista todos os pagamentos com paginação",
-        "description": "Obtém uma lista paginada de todos os pagamentos do sistema",
+        "description": "",
         "parameters": [
-          {
-            "name": "if-none-match",
-            "in": "header",
-            "type": "string"
-          },
           {
             "name": "page",
             "in": "query",
-            "description": "Número da página para paginação",
-            "required": false,
-            "type": "integer",
-            "example": 1
+            "type": "string"
           },
           {
             "name": "limit",
             "in": "query",
-            "description": "Quantidade de itens por página",
-            "required": false,
-            "type": "integer",
-            "example": 10
+            "type": "string"
+          },
+          {
+            "name": "if-none-match",
+            "in": "header",
+            "type": "string"
           }
         ],
         "responses": {
           "200": {
-            "description": "Lista de pagamentos com paginação",
-            "schema": {
-              "type": "object",
-              "properties": {
-                "type": {
-                  "type": "string",
-                  "example": "object"
-                },
-                "properties": {
-                  "type": "object",
-                  "properties": {
-                    "success": {
-                      "type": "object",
-                      "properties": {
-                        "type": {
-                          "type": "string",
-                          "example": "boolean"
-                        },
-                        "example": {
-                          "type": "boolean",
-                          "example": true
-                        }
-                      }
-                    },
-                    "data": {
-                      "type": "object",
-                      "properties": {
-                        "type": {
-                          "type": "string",
-                          "example": "object"
-                        },
-                        "properties": {
-                          "type": "object",
-                          "properties": {
-                            "payments": {
-                              "type": "object",
-                              "properties": {
-                                "type": {
-                                  "type": "string",
-                                  "example": "array"
-                                },
-                                "items": {
-                                  "$ref": "#/definitions/PaymentResponse"
-                                }
-                              }
-                            },
-                            "_meta": {
-                              "type": "object",
-                              "properties": {
-                                "type": {
-                                  "type": "string",
-                                  "example": "object"
-                                },
-                                "properties": {
-                                  "type": "object",
-                                  "properties": {
-                                    "page": {
-                                      "type": "object",
-                                      "properties": {
-                                        "type": {
-                                          "type": "string",
-                                          "example": "integer"
-                                        },
-                                        "example": {
-                                          "type": "number",
-                                          "example": 1
-                                        }
-                                      }
-                                    },
-                                    "limit": {
-                                      "type": "object",
-                                      "properties": {
-                                        "type": {
-                                          "type": "string",
-                                          "example": "integer"
-                                        },
-                                        "example": {
-                                          "type": "number",
-                                          "example": 10
-                                        }
-                                      }
-                                    },
-                                    "total": {
-                                      "type": "object",
-                                      "properties": {
-                                        "type": {
-                                          "type": "string",
-                                          "example": "integer"
-                                        },
-                                        "example": {
-                                          "type": "number",
-                                          "example": 100
-                                        }
-                                      }
-                                    },
-                                    "totalPages": {
-                                      "type": "object",
-                                      "properties": {
-                                        "type": {
-                                          "type": "string",
-                                          "example": "integer"
-                                        },
-                                        "example": {
-                                          "type": "number",
-                                          "example": 10
-                                        }
-                                      }
-                                    }
-                                  }
-                                }
-                              }
-                            }
-                          }
-                        }
-                      }
-                    },
-                    "_links": {
-                      "type": "object",
-                      "properties": {
-                        "type": {
-                          "type": "string",
-                          "example": "array"
-                        },
-                        "items": {
-                          "type": "object",
-                          "properties": {
-                            "type": {
-                              "type": "string",
-                              "example": "object"
-                            },
-                            "properties": {
-                              "type": "object",
-                              "properties": {
-                                "rel": {
-                                  "type": "object",
-                                  "properties": {
-                                    "type": {
-                                      "type": "string",
-                                      "example": "string"
-                                    },
-                                    "example": {
-                                      "type": "string",
-                                      "example": "next"
-                                    }
-                                  }
-                                },
-                                "href": {
-                                  "type": "object",
-                                  "properties": {
-                                    "type": {
-                                      "type": "string",
-                                      "example": "string"
-                                    },
-                                    "example": {
-                                      "type": "string",
-                                      "example": "/api/payments?page=2&limit=10"
-                                    }
-                                  }
-                                },
-                                "method": {
-                                  "type": "object",
-                                  "properties": {
-                                    "type": {
-                                      "type": "string",
-                                      "example": "string"
-                                    },
-                                    "example": {
-                                      "type": "string",
-                                      "example": "GET"
-                                    }
-                                  }
-                                }
-                              }
-                            }
-                          }
-                        }
-                      }
-                    }
-                  }
-                }
-              },
-              "xml": {
-                "name": "main"
-              }
-            }
+            "description": "OK"
           },
           "304": {
             "description": "Not Modified"
@@ -537,29 +348,20 @@
             "description": "Method Not Allowed"
           },
           "500": {
-            "description": "Erro interno do servidor",
-            "schema": {
-              "$ref": "#/definitions/ErrorResponse"
-            }
+            "description": "Internal Server Error"
           }
         }
       }
     },
     "/api/payments/{id}": {
       "get": {
-        "tags": [
-          "Pagamentos"
-        ],
-        "summary": "Obtém informações de um pagamento por ID",
-        "description": "Busca um pagamento específico pelo seu ID único",
+        "description": "",
         "parameters": [
           {
             "name": "id",
             "in": "path",
             "required": true,
-            "type": "string",
-            "description": "ID único do pagamento",
-            "example": "507f1f77bcf86cd799439011"
+            "type": "string"
           },
           {
             "name": "page",
@@ -584,10 +386,7 @@
         ],
         "responses": {
           "200": {
-            "description": "Informações do pagamento encontrado",
-            "schema": {
-              "$ref": "#/definitions/PaymentResponse"
-            }
+            "description": "OK"
           },
           "304": {
             "description": "Not Modified"
@@ -596,38 +395,26 @@
             "description": "Bad Request"
           },
           "404": {
-            "description": "Pagamento não encontrado",
-            "schema": {
-              "$ref": "#/definitions/ErrorResponse"
-            }
+            "description": "Not Found"
           },
           "405": {
             "description": "Method Not Allowed"
           },
           "500": {
-            "description": "Erro interno do servidor",
-            "schema": {
-              "$ref": "#/definitions/ErrorResponse"
-            }
+            "description": "Internal Server Error"
           }
         }
       }
     },
     "/api/payments/{id}/cancel": {
       "post": {
-        "tags": [
-          "Pagamentos"
-        ],
-        "summary": "Cancela um pagamento",
-        "description": "Cancela um pagamento que está em status pending",
+        "description": "",
         "parameters": [
           {
             "name": "id",
             "in": "path",
             "required": true,
-            "type": "string",
-            "description": "ID único do pagamento a ser cancelado",
-            "example": "507f1f77bcf86cd799439011"
+            "type": "string"
           },
           {
             "name": "page",
@@ -642,205 +429,32 @@
         ],
         "responses": {
           "200": {
-            "description": "Pagamento cancelado com sucesso",
-            "schema": {
-              "type": "object",
-              "properties": {
-                "type": {
-                  "type": "string",
-                  "example": "object"
-                },
-                "properties": {
-                  "type": "object",
-                  "properties": {
-                    "success": {
-                      "type": "object",
-                      "properties": {
-                        "type": {
-                          "type": "string",
-                          "example": "boolean"
-                        },
-                        "example": {
-                          "type": "boolean",
-                          "example": true
-                        }
-                      }
-                    },
-                    "data": {
-                      "type": "object",
-                      "properties": {
-                        "type": {
-                          "type": "string",
-                          "example": "object"
-                        },
-                        "properties": {
-                          "type": "object",
-                          "properties": {
-                            "paymentId": {
-                              "type": "object",
-                              "properties": {
-                                "type": {
-                                  "type": "string",
-                                  "example": "string"
-                                },
-                                "example": {
-                                  "type": "string",
-                                  "example": "507f1f77bcf86cd799439011"
-                                }
-                              }
-                            },
-                            "orderId": {
-                              "type": "object",
-                              "properties": {
-                                "type": {
-                                  "type": "string",
-                                  "example": "string"
-                                },
-                                "example": {
-                                  "type": "string",
-                                  "example": "order456"
-                                }
-                              }
-                            },
-                            "status": {
-                              "type": "object",
-                              "properties": {
-                                "type": {
-                                  "type": "string",
-                                  "example": "string"
-                                },
-                                "example": {
-                                  "type": "string",
-                                  "example": "cancelled"
-                                }
-                              }
-                            }
-                          }
-                        }
-                      }
-                    },
-                    "message": {
-                      "type": "object",
-                      "properties": {
-                        "type": {
-                          "type": "string",
-                          "example": "string"
-                        },
-                        "example": {
-                          "type": "string",
-                          "example": "Pagamento cancelado com sucesso"
-                        }
-                      }
-                    },
-                    "_links": {
-                      "type": "object",
-                      "properties": {
-                        "type": {
-                          "type": "string",
-                          "example": "array"
-                        },
-                        "items": {
-                          "type": "object",
-                          "properties": {
-                            "type": {
-                              "type": "string",
-                              "example": "object"
-                            },
-                            "properties": {
-                              "type": "object",
-                              "properties": {
-                                "rel": {
-                                  "type": "object",
-                                  "properties": {
-                                    "type": {
-                                      "type": "string",
-                                      "example": "string"
-                                    },
-                                    "example": {
-                                      "type": "string",
-                                      "example": "self"
-                                    }
-                                  }
-                                },
-                                "href": {
-                                  "type": "object",
-                                  "properties": {
-                                    "type": {
-                                      "type": "string",
-                                      "example": "string"
-                                    },
-                                    "example": {
-                                      "type": "string",
-                                      "example": "/api/payments/507f1f77bcf86cd799439011"
-                                    }
-                                  }
-                                },
-                                "method": {
-                                  "type": "object",
-                                  "properties": {
-                                    "type": {
-                                      "type": "string",
-                                      "example": "string"
-                                    },
-                                    "example": {
-                                      "type": "string",
-                                      "example": "GET"
-                                    }
-                                  }
-                                }
-                              }
-                            }
-                          }
-                        }
-                      }
-                    }
-                  }
-                }
-              },
-              "xml": {
-                "name": "main"
-              }
-            }
+            "description": "OK"
           },
           "400": {
-            "description": "Pagamento não pode ser cancelado (status inválido)",
-            "schema": {
-              "$ref": "#/definitions/ErrorResponse"
-            }
+            "description": "Bad Request"
           },
           "404": {
-            "description": "Pagamento não encontrado",
-            "schema": {
-              "$ref": "#/definitions/ErrorResponse"
-            }
+            "description": "Not Found"
           },
           "405": {
             "description": "Method Not Allowed"
           },
           "500": {
-            "description": "Erro interno do servidor",
-            "schema": {
-              "$ref": "#/definitions/ErrorResponse"
-            }
+            "description": "Internal Server Error"
           }
         }
       }
     },
     "/api/payments/{id}/refund": {
       "post": {
-        "tags": [
-          "Pagamentos"
-        ],
-        "summary": "Reembolsa um pagamento",
-        "description": "Reembolsa um pagamento que está em status approved",
+        "description": "",
         "parameters": [
           {
             "name": "id",
             "in": "path",
             "required": true,
-            "type": "string",
-            "description": "ID único do pagamento a ser reembolsado",
-            "example": "507f1f77bcf86cd799439011"
+            "type": "string"
           },
           {
             "name": "page",
@@ -855,197 +469,26 @@
         ],
         "responses": {
           "200": {
-            "description": "Pagamento reembolsado com sucesso",
-            "schema": {
-              "type": "object",
-              "properties": {
-                "type": {
-                  "type": "string",
-                  "example": "object"
-                },
-                "properties": {
-                  "type": "object",
-                  "properties": {
-                    "success": {
-                      "type": "object",
-                      "properties": {
-                        "type": {
-                          "type": "string",
-                          "example": "boolean"
-                        },
-                        "example": {
-                          "type": "boolean",
-                          "example": true
-                        }
-                      }
-                    },
-                    "data": {
-                      "type": "object",
-                      "properties": {
-                        "type": {
-                          "type": "string",
-                          "example": "object"
-                        },
-                        "properties": {
-                          "type": "object",
-                          "properties": {
-                            "paymentId": {
-                              "type": "object",
-                              "properties": {
-                                "type": {
-                                  "type": "string",
-                                  "example": "string"
-                                },
-                                "example": {
-                                  "type": "string",
-                                  "example": "507f1f77bcf86cd799439011"
-                                }
-                              }
-                            },
-                            "orderId": {
-                              "type": "object",
-                              "properties": {
-                                "type": {
-                                  "type": "string",
-                                  "example": "string"
-                                },
-                                "example": {
-                                  "type": "string",
-                                  "example": "order456"
-                                }
-                              }
-                            },
-                            "status": {
-                              "type": "object",
-                              "properties": {
-                                "type": {
-                                  "type": "string",
-                                  "example": "string"
-                                },
-                                "example": {
-                                  "type": "string",
-                                  "example": "refunded"
-                                }
-                              }
-                            }
-                          }
-                        }
-                      }
-                    },
-                    "message": {
-                      "type": "object",
-                      "properties": {
-                        "type": {
-                          "type": "string",
-                          "example": "string"
-                        },
-                        "example": {
-                          "type": "string",
-                          "example": "Pagamento reembolsado com sucesso"
-                        }
-                      }
-                    },
-                    "_links": {
-                      "type": "object",
-                      "properties": {
-                        "type": {
-                          "type": "string",
-                          "example": "array"
-                        },
-                        "items": {
-                          "type": "object",
-                          "properties": {
-                            "type": {
-                              "type": "string",
-                              "example": "object"
-                            },
-                            "properties": {
-                              "type": "object",
-                              "properties": {
-                                "rel": {
-                                  "type": "object",
-                                  "properties": {
-                                    "type": {
-                                      "type": "string",
-                                      "example": "string"
-                                    },
-                                    "example": {
-                                      "type": "string",
-                                      "example": "self"
-                                    }
-                                  }
-                                },
-                                "href": {
-                                  "type": "object",
-                                  "properties": {
-                                    "type": {
-                                      "type": "string",
-                                      "example": "string"
-                                    },
-                                    "example": {
-                                      "type": "string",
-                                      "example": "/api/payments/507f1f77bcf86cd799439011"
-                                    }
-                                  }
-                                },
-                                "method": {
-                                  "type": "object",
-                                  "properties": {
-                                    "type": {
-                                      "type": "string",
-                                      "example": "string"
-                                    },
-                                    "example": {
-                                      "type": "string",
-                                      "example": "GET"
-                                    }
-                                  }
-                                }
-                              }
-                            }
-                          }
-                        }
-                      }
-                    }
-                  }
-                }
-              },
-              "xml": {
-                "name": "main"
-              }
-            }
+            "description": "OK"
           },
           "400": {
-            "description": "Pagamento não pode ser reembolsado (status inválido)",
-            "schema": {
-              "$ref": "#/definitions/ErrorResponse"
-            }
+            "description": "Bad Request"
           },
           "404": {
-            "description": "Pagamento não encontrado",
-            "schema": {
-              "$ref": "#/definitions/ErrorResponse"
-            }
+            "description": "Not Found"
           },
           "405": {
             "description": "Method Not Allowed"
           },
           "500": {
-            "description": "Erro interno do servidor",
-            "schema": {
-              "$ref": "#/definitions/ErrorResponse"
-            }
+            "description": "Internal Server Error"
           }
         }
       }
     },
     "/api/payments/webhook": {
       "post": {
-        "tags": [
-          "Webhooks"
-        ],
-        "summary": "Recebe notificações de pagamento do Mercado Pago",
-        "description": "Endpoint para receber notificações automáticas sobre mudanças de status dos pagamentos",
+        "description": "",
         "parameters": [
           {
             "name": "page",
@@ -1056,163 +499,27 @@
             "name": "limit",
             "in": "query",
             "type": "string"
-          },
-          {
-            "name": "body",
-            "in": "body",
-            "description": "Dados da notificação do Mercado Pago",
-            "required": true,
-            "schema": {
-              "$ref": "#/definitions/WebhookRequest"
-            }
           }
         ],
         "responses": {
           "202": {
-            "description": "Notificação recebida e será processada",
-            "schema": {
-              "type": "object",
-              "properties": {
-                "type": {
-                  "type": "string",
-                  "example": "object"
-                },
-                "properties": {
-                  "type": "object",
-                  "properties": {
-                    "success": {
-                      "type": "object",
-                      "properties": {
-                        "type": {
-                          "type": "string",
-                          "example": "boolean"
-                        },
-                        "example": {
-                          "type": "boolean",
-                          "example": true
-                        }
-                      }
-                    },
-                    "data": {
-                      "type": "object",
-                      "properties": {
-                        "type": {
-                          "type": "string",
-                          "example": "object"
-                        },
-                        "example": {}
-                      }
-                    },
-                    "message": {
-                      "type": "object",
-                      "properties": {
-                        "type": {
-                          "type": "string",
-                          "example": "string"
-                        },
-                        "example": {
-                          "type": "string",
-                          "example": "Notificação recebida e será processada"
-                        }
-                      }
-                    },
-                    "_links": {
-                      "type": "object",
-                      "properties": {
-                        "type": {
-                          "type": "string",
-                          "example": "array"
-                        },
-                        "items": {
-                          "type": "object",
-                          "properties": {
-                            "type": {
-                              "type": "string",
-                              "example": "object"
-                            },
-                            "properties": {
-                              "type": "object",
-                              "properties": {
-                                "rel": {
-                                  "type": "object",
-                                  "properties": {
-                                    "type": {
-                                      "type": "string",
-                                      "example": "string"
-                                    },
-                                    "example": {
-                                      "type": "string",
-                                      "example": "payments"
-                                    }
-                                  }
-                                },
-                                "href": {
-                                  "type": "object",
-                                  "properties": {
-                                    "type": {
-                                      "type": "string",
-                                      "example": "string"
-                                    },
-                                    "example": {
-                                      "type": "string",
-                                      "example": "/api/payments"
-                                    }
-                                  }
-                                },
-                                "method": {
-                                  "type": "object",
-                                  "properties": {
-                                    "type": {
-                                      "type": "string",
-                                      "example": "string"
-                                    },
-                                    "example": {
-                                      "type": "string",
-                                      "example": "GET"
-                                    }
-                                  }
-                                }
-                              }
-                            }
-                          }
-                        }
-                      }
-                    }
-                  }
-                }
-              },
-              "xml": {
-                "name": "main"
-              }
-            }
+            "description": "Accepted"
           },
           "400": {
             "description": "Bad Request"
-          },
-          "500": {
-            "description": "Erro interno do servidor",
-            "schema": {
-              "$ref": "#/definitions/ErrorResponse"
-            }
           }
         }
       }
     },
     "/api/payments/order/{orderId}": {
       "get": {
-        "tags": [
-          "Pagamentos"
-        ],
-        "summary": "Obtém informações de um pagamento por Order ID",
-        "description": "Busca um pagamento específico usando o ID do pedido",
+        "description": "",
         "parameters": [
           {
             "name": "orderId",
             "in": "path",
             "required": true,
-            "type": "string",
-            "description": "ID único do pedido (Order ID)",
-            "example": "order456"
+            "type": "string"
           },
           {
             "name": "page",
@@ -1237,10 +544,7 @@
         ],
         "responses": {
           "200": {
-            "description": "Informações do pagamento encontrado",
-            "schema": {
-              "$ref": "#/definitions/PaymentResponse"
-            }
+            "description": "OK"
           },
           "304": {
             "description": "Not Modified"
@@ -1249,38 +553,36 @@
             "description": "Bad Request"
           },
           "404": {
-            "description": "Pagamento não encontrado para este orderId",
-            "schema": {
-              "$ref": "#/definitions/ErrorResponse"
-            }
+            "description": "Not Found"
           },
           "405": {
             "description": "Method Not Allowed"
           },
           "500": {
-            "description": "Erro interno do servidor",
-            "schema": {
-              "$ref": "#/definitions/ErrorResponse"
-            }
+            "description": "Internal Server Error"
           }
         }
       }
     },
     "/api/payments/user/{userId}": {
       "get": {
-        "tags": [
-          "Pagamentos"
-        ],
-        "summary": "Obtém todos os pagamentos de um usuário com filtros opcionais",
-        "description": "Busca todos os pagamentos de um usuário específico com suporte a filtros por status, datas e paginação",
+        "description": "",
         "parameters": [
           {
             "name": "userId",
             "in": "path",
             "required": true,
-            "type": "string",
-            "description": "ID único do usuário",
-            "example": "user123"
+            "type": "string"
+          },
+          {
+            "name": "page",
+            "in": "query",
+            "type": "string"
+          },
+          {
+            "name": "limit",
+            "in": "query",
+            "type": "string"
           },
           {
             "name": "if-none-match",
@@ -1290,81 +592,37 @@
           {
             "name": "status",
             "in": "query",
-            "description": "Filtrar por status do pagamento",
-            "required": false,
-            "type": "string",
-            "enum": [
-              "pending",
-              "approved",
-              "rejected",
-              "cancelled",
-              "refunded"
-            ],
-            "example": "approved"
-          },
-          {
-            "name": "page",
-            "in": "query",
-            "description": "Número da página para paginação",
-            "required": false,
-            "type": "integer",
-            "example": 1
-          },
-          {
-            "name": "limit",
-            "in": "query",
-            "description": "Quantidade de itens por página",
-            "required": false,
-            "type": "integer",
-            "example": 10
+            "type": "string"
           },
           {
             "name": "startDate",
             "in": "query",
-            "description": "Data inicial para filtro (formato: YYYY-MM-DD)",
-            "required": false,
-            "type": "string",
-            "example": "2024-01-01"
+            "type": "string"
           },
           {
             "name": "endDate",
             "in": "query",
-            "description": "Data final para filtro (formato: YYYY-MM-DD)",
-            "required": false,
-            "type": "string",
-            "example": "2024-01-31"
+            "type": "string"
           }
         ],
         "responses": {
           "200": {
-            "description": "Lista de pagamentos do usuário com filtros aplicados",
-            "schema": {
-              "$ref": "#/definitions/UserPaymentsResponse"
-            }
+            "description": "OK"
           },
           "304": {
             "description": "Not Modified"
           },
           "400": {
-            "description": "Parâmetros inválidos (userId obrigatório, status ou datas inválidas)",
-            "schema": {
-              "$ref": "#/definitions/ErrorResponse"
-            }
+            "description": "Bad Request"
           },
           "404": {
-            "description": "Nenhum pagamento encontrado para este usuário",
-            "schema": {
-              "$ref": "#/definitions/ErrorResponse"
-            }
+            "description": "Not Found"
           },
           "405": {
             "description": "Method Not Allowed"
           },
           "500": {
-            "description": "Erro interno do servidor",
-            "schema": {
-              "$ref": "#/definitions/ErrorResponse"
-            }
+            "description": "Internal Server Error"
           }
         }
       }

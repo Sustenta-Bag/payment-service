@@ -10,7 +10,8 @@ class NotificationService {  /**
    * @param {String} body Corpo da notificação
    * @param {Object} data Dados adicionais da notificação
    * @returns {Promise<boolean>} Se a notificação foi enviada com sucesso
-   */    async sendNotification(userId, title, body, data = {}) {
+   */    
+  async sendNotification(userId, title, body, data = {}) {
     logger.info(`Enviando notificação para o usuário: ${userId} | Título: ${title}`);
     try {
       // Buscar o token FCM do usuário no monolito

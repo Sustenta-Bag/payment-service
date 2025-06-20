@@ -43,7 +43,8 @@ class RabbitMQService {
         config.rabbitmq.queues.paymentRequests,
         config.rabbitmq.exchanges.payments,
         'payment.request'
-      );      await this.channel.bindQueue(
+      );      
+      await this.channel.bindQueue(
         config.rabbitmq.queues.paymentResults,
         config.rabbitmq.exchanges.payments,
         'payment.result'
