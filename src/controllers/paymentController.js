@@ -70,17 +70,23 @@ exports.createPayment = async (req, res) => {
     payment.paymentId = paymentIntent.id;
     payment.updatedAt = new Date();
     await payment.save();
-
     await rabbitMQService.publish(
       config.rabbitmq.exchanges.payments,
       "payment.request",
       {
-        action: "PAYMENT_CREATED",
-        paymentId: payment._id,
-        orderId,
-        userId,
-        amount,
-        paymentUrl: paymentIntent.init_point,
+        eventType: "PaymentCreated",
+        version: "1.0",
+        producer: "payment-service",
+        timestamp: new Date(),
+        correlationId: uuidv4(),
+        data: {
+          action: "PAYMENT_CREATED",
+          paymentId: payment._id,
+          orderId,
+          userId,
+          amount,
+          paymentUrl: paymentIntent.init_point,
+        },
       }
     );
 
@@ -229,28 +235,34 @@ exports.webhook = async (req, res) => {
     payment.paymentMethod = paymentInfo.paymentMethod;
     payment.updatedAt = new Date();
     await payment.save();
-
     await rabbitMQService.publish(
       config.rabbitmq.exchanges.payments,
       "payment.result",
       {
-        action: "PAYMENT_UPDATED",
-        paymentId: payment._id,
-        orderId: payment.orderId,
-        userId: payment.userId,
-        status: payment.status,
-        previousStatus: previousStatus,
-        amount: payment.amount,
-        paymentMethod: payment.paymentMethod,
-        items: payment.items,
-        createdAt: payment.createdAt,
-        updatedAt: payment.updatedAt,
-        shouldNotifyUser:
-          payment.status === "approved" || payment.status === "rejected",
-        notificationData: {
-          userEmail: payment.payer?.email,
-          userName: payment.payer?.name,
-          paymentUrl: payment.paymentUrl,
+        eventType: "PaymentUpdated",
+        version: "1.0",
+        producer: "payment-service",
+        timestamp: new Date(),
+        correlationId: uuidv4(),
+        data: {
+          action: "PAYMENT_UPDATED",
+          paymentId: payment._id,
+          orderId: payment.orderId,
+          userId: payment.userId,
+          status: payment.status,
+          previousStatus: previousStatus,
+          amount: payment.amount,
+          paymentMethod: payment.paymentMethod,
+          items: payment.items,
+          createdAt: payment.createdAt,
+          updatedAt: payment.updatedAt,
+          shouldNotifyUser:
+            payment.status === "approved" || payment.status === "rejected",
+          notificationData: {
+            userEmail: payment.payer?.email,
+            userName: payment.payer?.name,
+            paymentUrl: payment.paymentUrl,
+          },
         },
       }
     );
@@ -370,15 +382,21 @@ exports.cancelPayment = async (req, res) => {
     await payment.save();
 
     const links = hateoasUtils.generatePaymentLinks(payment._id, req);
-
     await rabbitMQService.publish(
       config.rabbitmq.exchanges.payments,
       "payment.status",
       {
-        action: "PAYMENT_CANCELLED",
-        paymentId: payment._id,
-        orderId: payment.orderId,
-        userId: payment.userId,
+        eventType: "PaymentCancelled",
+        version: "1.0",
+        producer: "payment-service",
+        timestamp: new Date(),
+        correlationId: uuidv4(),
+        data: {
+          action: "PAYMENT_CANCELLED",
+          paymentId: payment._id,
+          orderId: payment.orderId,
+          userId: payment.userId,
+        },
       }
     );
 
@@ -439,15 +457,21 @@ exports.refundPayment = async (req, res) => {
     await payment.save();
 
     const links = hateoasUtils.generatePaymentLinks(payment._id, req);
-
     await rabbitMQService.publish(
       config.rabbitmq.exchanges.payments,
       "payment.status",
       {
-        action: "PAYMENT_REFUNDED",
-        paymentId: payment._id,
-        orderId: payment.orderId,
-        userId: payment.userId,
+        eventType: "PaymentRefunded",
+        version: "1.0",
+        producer: "payment-service",
+        timestamp: new Date(),
+        correlationId: uuidv4(),
+        data: {
+          action: "PAYMENT_REFUNDED",
+          paymentId: payment._id,
+          orderId: payment.orderId,
+          userId: payment.userId,
+        },
       }
     );
 

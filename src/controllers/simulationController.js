@@ -6,6 +6,7 @@ const config = require("../config/config");
 const logger = require("../utils/logger");
 const { renderPaymentSimulationPage } = require("../utils/templates");
 const hateoasUtils = require("../utils/hateoasUtils");
+const { v4: uuidv4 } = require("uuid");
 
 /**
  * Renderiza a página de simulação de pagamento
@@ -148,28 +149,34 @@ exports.processPaymentSimulation = async (req, res) => {
       logger.info(
         `❌ Webhook NÃO será enviado. Status: ${paymentResult.status} (esperado: approved)`
       );
-    }
-    await rabbitMQService.publish(
+    }    await rabbitMQService.publish(
       config.rabbitmq.exchanges.payments,
       "payment.result",
       {
-        action: "PAYMENT_UPDATED",
-        paymentId: payment._id,
-        orderId: payment.orderId,
-        userId: payment.userId,
-        status: payment.status,
-        previousStatus: "pending",
-        amount: payment.amount,
-        paymentMethod: payment.paymentMethod,
-        items: payment.items,
-        createdAt: payment.createdAt,
-        updatedAt: payment.updatedAt,
-        shouldNotifyUser:
-          payment.status === "approved" || payment.status === "rejected",
-        notificationData: {
-          userEmail: payment.payer?.email,
-          userName: payment.payer?.name,
-          paymentUrl: payment.paymentUrl,
+        eventType: "PaymentUpdated",
+        version: "1.0",
+        producer: "payment-service",
+        timestamp: new Date(),
+        correlationId: uuidv4(),
+        data: {
+          action: "PAYMENT_UPDATED",
+          paymentId: payment._id,
+          orderId: payment.orderId,
+          userId: payment.userId,
+          status: payment.status,
+          previousStatus: "pending",
+          amount: payment.amount,
+          paymentMethod: payment.paymentMethod,
+          items: payment.items,
+          createdAt: payment.createdAt,
+          updatedAt: payment.updatedAt,
+          shouldNotifyUser:
+            payment.status === "approved" || payment.status === "rejected",
+          notificationData: {
+            userEmail: payment.payer?.email,
+            userName: payment.payer?.name,
+            paymentUrl: payment.paymentUrl,
+          },
         },
       }
     );

@@ -33,8 +33,20 @@ class QueueConsumers {
           logger.info(
             `📥 Processando resultado de pagamento: ${JSON.stringify(message)}`
           );
-          const { paymentId, orderId, userId, status, shouldNotifyUser } =
-            message;
+
+          const {
+            eventType,
+            version,
+            producer,
+            timestamp,
+            correlationId,
+            data,
+          } = message;
+          const { paymentId, orderId, userId, status, shouldNotifyUser } = data;
+
+          logger.info(
+            `📋 Evento recebido: ${eventType} v${version} de ${producer} (correlationId: ${correlationId})`
+          );
 
           if (
             shouldNotifyUser &&
@@ -51,7 +63,7 @@ class QueueConsumers {
                 {
                   _id: paymentId,
                   orderId: orderId,
-                  amount: message.amount,
+                  amount: data.amount
                 }
               );
 
