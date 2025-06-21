@@ -1,3 +1,4 @@
+const { v4: uuidv4 } = require("uuid");
 const rabbitMQService = require("./rabbitMQ");
 const monolithClient = require("./monolithClient");
 const config = require("../config/config");
@@ -18,7 +19,6 @@ class NotificationService {
     );
     try {
       const fcmToken = await monolithClient.getUserFcmToken(userId);
-
       if (!fcmToken) {
         logger.warn(
           `Token FCM não encontrado para o usuário ${userId}. Notificação não enviada.`
@@ -26,22 +26,28 @@ class NotificationService {
         return false;
       }
 
-      const notificationData = {
-        to: fcmToken,
-        notification: {
-          title,
-          body,
-        },
-        data,
-        timestamp: new Date().toISOString(),
-      };
-
-      logger.debug(`Dados da notificação: ${JSON.stringify(notificationData)}`);
+      logger.debug(`Enviando notificação: ${title} - ${body}`);
 
       const result = await rabbitMQService.publish(
         config.rabbitmq.exchanges.notifications,
         "notification",
-        notificationData
+        {
+          eventType: "NotificationRequested",
+          version: "1.0",
+          producer: "payment-service",
+          timestamp: new Date(),
+          correlationId: uuidv4(),
+          data: {
+            to: fcmToken,
+            notification: {
+              title,
+              body,
+            },
+            data,
+            userId: userId,
+            timestamp: new Date().toISOString(),
+          },
+        }
       );
 
       if (result) {
@@ -88,12 +94,16 @@ class NotificationService {
         title = "Atualização de pagamento";
         body = `O status do seu pagamento foi atualizado para: ${status}`;
       }
-
       const notificationData = {
+        type: "single",
         paymentId: paymentData._id.toString(),
         orderId: paymentData.orderId,
         amount: paymentData.amount,
         status: status,
+        currency: "BRL",
+        paymentMethod: paymentData.paymentMethod || "unknown",
+        items: paymentData.items || [],
+        timestamp: new Date().toISOString(),
       };
 
       return await this.sendNotification(userId, title, body, notificationData);
