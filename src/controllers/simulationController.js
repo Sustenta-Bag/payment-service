@@ -149,7 +149,8 @@ exports.processPaymentSimulation = async (req, res) => {
       logger.info(
         `❌ Webhook NÃO será enviado. Status: ${paymentResult.status} (esperado: approved)`
       );
-    }    await rabbitMQService.publish(
+    }
+    await rabbitMQService.publish(
       config.rabbitmq.exchanges.payments,
       "payment.result",
       {

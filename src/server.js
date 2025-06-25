@@ -6,37 +6,23 @@ const logger = require("./utils/logger");
 
 async function startServer() {
   try {
-    try {
-      await rabbitMQService.connect();
-      logger.info("Conectado ao RabbitMQ");
-
-      await queueConsumers.startConsumers();
-      logger.info("Consumidores RabbitMQ iniciados");
-    } catch (error) {
-      logger.warn(
-        `Aviso: Não foi possível conectar ao RabbitMQ: ${error.message}`
-      );
-      logger.warn(
-        "O serviço iniciará sem conexão com o RabbitMQ. Alguns recursos podem não funcionar."
-      );
-    }
-
     const server = app.listen(config.port, () => {
-      logger.info(`Servidor rodando na porta ${config.port}`);
+      logger.info(`🚀 Servidor rodando na porta ${config.port}`);
     });
 
     const shutdown = async () => {
-      logger.info("Desligando servidor...");
+      logger.info("🛑 Desligando servidor...");
 
       server.close(async () => {
-        logger.info("Servidor HTTP encerrado");
+        logger.info("📡 Servidor HTTP encerrado");
 
         try {
+          await queueConsumers.stopConsumers();
           await rabbitMQService.close();
-          logger.info("Conexões fechadas");
+          logger.info("🔌 Conexões fechadas");
           process.exit(0);
         } catch (error) {
-          logger.error(`Erro ao fechar conexões: ${error.message}`);
+          logger.error(`❌ Erro ao fechar conexões: ${error.message}`);
           process.exit(1);
         }
       });
@@ -44,8 +30,22 @@ async function startServer() {
 
     process.on("SIGTERM", shutdown);
     process.on("SIGINT", shutdown);
+
+    queueConsumers
+      .startConsumers()
+      .then(() => {
+        logger.info("🐰 Consumidores RabbitMQ iniciados com sucesso");
+      })
+      .catch((error) => {
+        logger.error(
+          `🚨 Falha crítica ao iniciar consumidores RabbitMQ: ${error.message}`
+        );
+        logger.warn(
+          "⚠️ O serviço continuará rodando sem conexão com RabbitMQ. Alguns recursos podem não funcionar."
+        );
+      });
   } catch (error) {
-    logger.error(`Erro ao iniciar servidor: ${error.message}`);
+    logger.error(`💥 Erro ao iniciar servidor: ${error.message}`);
     process.exit(1);
   }
 }

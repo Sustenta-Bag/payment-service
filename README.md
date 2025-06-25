@@ -127,12 +127,42 @@ docker run -p 3000:3000 payment-service
 
 Principais variáveis de ambiente:
 ```env
+# Servidor
 PORT=3000
-MONGODB_URI=mongodb://localhost:27017/payment-service
-RABBITMQ_URL=amqp://guest:guest@localhost:5672/
-MONOLITH_API_URL=http://localhost:8080
 NODE_ENV=development
+
+# Banco de dados
+MONGODB_URI=mongodb://localhost:27017/payment-service
+
+# RabbitMQ
+RABBITMQ_URL=amqp://guest:guest@localhost:5672/
+
+# Configuração de Retry para RabbitMQ
+MAX_RETRIES=5           # Número máximo de tentativas de conexão
+RETRY_DELAY_MS=2000     # Delay entre tentativas em milissegundos
+
+# APIs externas
+MONOLITH_API_URL=http://localhost:8080
 ```
+
+### Configuração de Retry RabbitMQ
+
+O serviço implementa um sistema robusto de retry para conexões RabbitMQ:
+
+- **MAX_RETRIES**: Número máximo de tentativas de conexão (padrão: 5)
+- **RETRY_DELAY_MS**: Tempo de espera entre tentativas em ms (padrão: 2000)
+
+#### Comportamento do Retry:
+
+1. **Conexão Inicial**: Tenta conectar até MAX_RETRIES vezes
+2. **Consumidores**: Reinicia automaticamente em caso de falha
+3. **Publicação**: Retry automático para envio de mensagens
+4. **Notificações**: Retry específico (3 tentativas) para envio de notificações
+
+#### Monitoramento:
+
+- **Health Check**: `/health` - Verifica status dos consumidores RabbitMQ
+- **Logs**: Logs detalhados com emojis para facilitar debugging
 
 ## Testes
 

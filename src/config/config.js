@@ -1,27 +1,34 @@
-const dotenv = require('dotenv');
+const dotenv = require("dotenv");
 dotenv.config();
 
 module.exports = {
-  env: process.env.NODE_ENV || 'development',
-  port: process.env.PORT || 3001,  mongodb: {
-    uri: process.env.MONGODB_URI
-  },  
+  env: process.env.NODE_ENV || "development",
+  port: process.env.PORT || 3001,
+  mongodb: {
+    uri: process.env.MONGODB_URI,
+  },
   rabbitmq: {
     url: process.env.RABBITMQ_URL,
+    maxRetries: parseInt(process.env.MAX_RETRIES) || 5,
+    retryDelayMs: parseInt(process.env.RETRY_DELAY_MS) || 2000,
     queues: {
-      paymentRequests: 'payment_requests',
-      paymentResults: 'payment_results',
-      notifications: 'process_notification'
+      paymentRequests: "payment_requests",
+      paymentResults: "payment_results",
+      notifications: "process_notification",
     },
     exchanges: {
-      payments: 'payments_exchange',
-      notifications: 'process_notification_exchange'
-    }
+      payments: "payments_exchange",
+      notifications: "process_notification_exchange",
+    },
   },
   payment: {
     simulation: {
-      callbackUrl: process.env.PAYMENT_SIMULATION_CALLBACK_URL || 'http://localhost:3001/api/payment-simulation',
-      notificationUrl: process.env.PAYMENT_SIMULATION_NOTIFICATION_URL || 'http://localhost:3001/api/payments/webhook'
-    }
-  }
+      callbackUrl:
+        process.env.PAYMENT_SIMULATION_CALLBACK_URL ||
+        "http://localhost:3001/api/payment-simulation",
+      notificationUrl:
+        process.env.PAYMENT_SIMULATION_NOTIFICATION_URL ||
+        "http://localhost:3001/api/payments/webhook",
+    },
+  },
 };

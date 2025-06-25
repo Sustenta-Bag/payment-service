@@ -1,40 +1,40 @@
-const express = require('express');
-const cors = require('cors');
-const helmet = require('helmet');
-const morgan = require('morgan');
-const mongoose = require('mongoose');
-const config = require('./config/config');
-const paymentRoutes = require('./routes/paymentRoutes');
-const simulationRoutes = require('./routes/simulationRoutes');
-const setupSwagger = require('./config/swagger');
-const logger = require('./utils/logger');
-const versionMiddleware = require('./middlewares/versionMiddleware');
-const contentNegotiationMiddleware = require('./middlewares/contentNegotiationMiddleware');
-const paginationMiddleware = require('./middlewares/paginationMiddleware');
+const express = require("express");
+const cors = require("cors");
+const helmet = require("helmet");
+const morgan = require("morgan");
+const mongoose = require("mongoose");
+const config = require("./config/config");
+const paymentRoutes = require("./routes/paymentRoutes");
+const simulationRoutes = require("./routes/simulationRoutes");
+const setupSwagger = require("./config/swagger");
+const logger = require("./utils/logger");
+const versionMiddleware = require("./middlewares/versionMiddleware");
+const contentNegotiationMiddleware = require("./middlewares/contentNegotiationMiddleware");
+const paginationMiddleware = require("./middlewares/paginationMiddleware");
+const queueConsumers = require("./services/queueConsumers");
 
 const app = express();
 
 app.use(helmet());
 app.use(cors());
 app.use(express.json());
-app.use(morgan('combined'));
+app.use(morgan("combined"));
 
-// Adiciona middleware de versionamento para todas as rotas da API
-app.use('/api', versionMiddleware.addVersionHeaders('1.0.0'));
+app.use("/api", versionMiddleware.addVersionHeaders("1.0.0"));
 
 // Adiciona middleware de negociação de conteúdo para todas as rotas da API
-app.use('/api', contentNegotiationMiddleware.contentNegotiation());
+app.use("/api", contentNegotiationMiddleware.contentNegotiation());
 
 // Adiciona middleware de paginação para todas as rotas de coleção da API
-app.use('/api', paginationMiddleware);
+app.use("/api", paginationMiddleware);
 
-app.use('/api/payments', paymentRoutes);
-app.use('/api/payment-simulation', simulationRoutes);
+app.use("/api/payments", paymentRoutes);
+app.use("/api/payment-simulation", simulationRoutes);
 
 setupSwagger(app);
-logger.info('Documentação Swagger disponível em /api-docs');
+logger.info("Documentação Swagger disponível em /api-docs");
 
-app.get('/api', (req, res) => {
+app.get("/api", (req, res) => {
   /*  #swagger.tags = ['API']
       #swagger.summary = 'Endpoint raiz da API com links HATEOAS'
       #swagger.description = 'Retorna informações básicas da API e links de navegação HATEOAS para os principais recursos'
@@ -61,60 +61,97 @@ app.get('/api', (req, res) => {
         }
       }
   */
-  const baseUrl = `${req.protocol}://${req.get('host')}`;
-    const links = [
+  const baseUrl = `${req.protocol}://${req.get("host")}`;
+  const links = [
     {
-      rel: 'payments',
+      rel: "payments",
       href: `${baseUrl}/api/payments`,
-      method: 'GET',
-      description: 'Lista todos os pagamentos'
+      method: "GET",
+      description: "Lista todos os pagamentos",
     },
     {
-      rel: 'create-payment',
+      rel: "create-payment",
       href: `${baseUrl}/api/payments`,
-      method: 'POST',
-      description: 'Cria um novo pagamento'
+      method: "POST",
+      description: "Cria um novo pagamento",
     },
     {
-      rel: 'health',
+      rel: "health",
       href: `${baseUrl}/health`,
-      method: 'GET',
-      description: 'Verifica a saúde da aplicação'
+      method: "GET",
+      description: "Verifica a saúde da aplicação",
     },
     {
-      rel: 'api-docs',
+      rel: "api-docs",
       href: `${baseUrl}/api-docs`,
-      method: 'GET',
-      description: 'Documentação Swagger da API'
-    }
+      method: "GET",
+      description: "Documentação Swagger da API",
+    },
   ];
-  
+
   res.status(200).json({
-    name: 'API de Pagamentos',
-    version: '1.0.0',
-    _links: links
+    name: "API de Pagamentos",
+    version: "1.0.0",
+    _links: links,
   });
 });
 
-app.get('/health', (req, res) => {
+app.get("/health", (req, res) => {
   /*  #swagger.tags = ['Health']
       #swagger.summary = 'Verifica a saúde da aplicação'
-      #swagger.description = 'Endpoint para verificação de saúde da aplicação, retorna status e timestamp'
+      #swagger.description = 'Endpoint para verificação de saúde da aplicação, incluindo status dos consumidores RabbitMQ'
       #swagger.responses[200] = {
         description: 'Aplicação funcionando corretamente',
         schema: {
           type: 'object',
           properties: {
             status: { type: 'string', example: 'OK' },
-            timestamp: { type: 'string', format: 'date-time', example: '2024-01-15T10:30:00.000Z' }
+            timestamp: { type: 'string', format: 'date-time', example: '2024-01-15T10:30:00.000Z' },
+            services: {
+              type: 'object',
+              properties: {
+                rabbitmq_consumers: { type: 'string', example: 'healthy' },
+                database: { type: 'string', example: 'healthy' }
+              }
+            }
+          }
+        }
+      }
+      #swagger.responses[503] = {
+        description: 'Serviço indisponível',
+        schema: {
+          type: 'object',
+          properties: {
+            status: { type: 'string', example: 'ERROR' },
+            timestamp: { type: 'string', format: 'date-time' },
+            services: { type: 'object' }
           }
         }
       }
   */
-  res.status(200).json({ status: 'OK', timestamp: new Date() });
+
+  const health = {
+    status: "OK",
+    timestamp: new Date(),
+    services: {
+      rabbitmq_consumers: queueConsumers.isHealthy() ? "healthy" : "unhealthy",
+      database: mongoose.connection.readyState === 1 ? "healthy" : "unhealthy",
+    },
+  };
+
+  const isUnhealthy = Object.values(health.services).some(
+    (status) => status === "unhealthy"
+  );
+
+  if (isUnhealthy) {
+    health.status = "DEGRADED";
+    return res.status(503).json(health);
+  }
+
+  res.status(200).json(health);
 });
 
-app.get('/', (req, res) => {
+app.get("/", (req, res) => {
   const html = `
   <!DOCTYPE html>
   <html lang="pt-BR">
@@ -213,24 +250,25 @@ app.get('/', (req, res) => {
   </body>
   </html>
   `;
-  
-  res.setHeader('Content-Type', 'text/html');
+
+  res.setHeader("Content-Type", "text/html");
   res.send(html);
 });
 
 app.use((err, req, res, next) => {
   logger.error(`Erro não tratado: ${err.message}`);
-  
+
   res.status(err.status || 500).json({
     success: false,
-    message: err.message || 'Erro interno do servidor',
-    stack: config.env === 'development' ? err.stack : undefined
+    message: err.message || "Erro interno do servidor",
+    stack: config.env === "development" ? err.stack : undefined,
   });
 });
 
-mongoose.connect(config.mongodb.uri)
+mongoose
+  .connect(config.mongodb.uri)
   .then(() => {
-    logger.info('Conectado ao MongoDB');
+    logger.info("Conectado ao MongoDB");
   })
   .catch((err) => {
     logger.error(`Erro ao conectar ao MongoDB: ${err.message}`);
